@@ -67,13 +67,21 @@ let commands: Array<Command> = [
     // LOOK
     {
         l1: 'look',
-        l2: 'amhraic',
-        helpText: {l1: 'Look around', l2: '[look around]'},
+        l2: 'seall',
+        helpText: {l1: 'Look around', l2: 'Seall mun cuairt'},
         execute: (rest: string, gameState: GameState) => {
             return {
                 gameState,
                 storyState: {
-                    story: look(gameState)
+                    story: [
+                        // Narrate the player looking around
+                        {paragraphElements: [
+                            {l1: 'You look around...', l2: 'Seallaidh sibh mun cuairt...'}
+                        ]},
+
+                        // Look around
+                        ...look(gameState)
+                    ]
                 }
             }
         }
@@ -128,7 +136,7 @@ let commands: Array<Command> = [
                     story: [
                         // Narrate the movement to the new room
                         {paragraphElements: [
-                            {l1: `You go  ${exit.direction.l1}...`, l2: `Thèid sibh ${exit.direction.l2}...`}
+                            {l1: `You go ${exit.direction.l1}...`, l2: `Thèid sibh ${exit.direction.l2}...`}
                         ]},
 
                         // Execute "look" in the new room
