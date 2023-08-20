@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, Ref, useRef } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Col, Form, Row } from 'react-bootstrap';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { newGame } from './model/game';
-import { GAELIC_HELP_COMMAND, executeCommand, look } from './model/command-parser';
+import { GAELIC_HELP_COMMAND, executeCommand, getValidCommandInputs, look } from './model/command-parser';
 import { ToggleInlineTranslation } from './component/toggle-translate';
-import { Paragraph, Story, StoryState, UserInput } from './model/story';
+import { Story, StoryState } from './model/story';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
+import { Typeahead } from 'react-bootstrap-typeahead';
+import { StoryView } from './component/story-view';
 
 function App() {
   let [gameState, setGameState] = useState(newGame());
@@ -24,61 +27,55 @@ function App() {
 
   let [storyState, setStoryState] = useState({story: story} as StoryState);
 
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, control } = useForm();
 
   let onEnterCommand = function(data: any) {
-    let command: string = data.command;
-    let newState = executeCommand(command, gameState, storyState);
-    setGameState(newState.gameState);
-    setStoryState(newState.storyState);
+    if (data.command) {
+      // TODO clear the command input
+
+      let command: string = data.command[0];
+      let newState = executeCommand(command, gameState, storyState);
+      setGameState(newState.gameState);
+      setStoryState(newState.storyState);
+    }
   }
+
+  let validInputs = useMemo(
+    () => getValidCommandInputs(gameState),
+    [gameState]
+  );
 
   return (
     <div className="App">
-      <div className="story">
-        {storyState.story.map((storyElement, storyIndex) => {
-          if ('heading' in storyElement) {
-            return <h4>
-              <ToggleInlineTranslation bilingual={storyElement.heading}/>
-            </h4>
-          } else if ('input' in storyElement) {
-            let input: UserInput = storyElement;
-            return <div>
-              {'>' }{input.input}
-            </div>;
-          } else {
-            let paragraph: Paragraph = storyElement;
-            return <div key={`paragraph${storyIndex}`}>
-
-              {paragraph.paragraphElements.map((element, sentenceIndex) => {
-                return <span key={`paragraph${storyIndex}-sentence${sentenceIndex}`}>
-                    {/* Non-translation text */}
-                    {(typeof element === 'string' || element instanceof String) && element}
-
-                    {/* Translation text */}
-                    {!(typeof element === 'string' || element instanceof String) && <ToggleInlineTranslation bilingual={element}/>}
-                    {' '}
-                </span>
-              })}
-            </div>;
-          }
-        })}
-      </div>
+      <StoryView storyState={storyState}/>
 
       <div>
         <Form onSubmit={handleSubmit(onEnterCommand)}>
-          <Form.Group as={Row} className="mb-3" controlId="formBasicEmail">
+          <Form.Group as={Row} className="mb-3" controlId="command">
             <Form.Label column sm={2}>
               <ToggleInlineTranslation bilingual={{l1: "command", l2: "comannd"}}/>
               {': '}
             </Form.Label>
             <Col sm={10}>
-              <Form.Control type="text" {...register("command")}/>
+              <Controller
+                  control={control}
+                  name="command"
+                  render={({ field, fieldState }) => (
+                    <Typeahead
+                      {...field}
+                      id="command"
+                      options={validInputs}
+                      clearButton
+                      flip
+                    ></Typeahead>
+                  )}
+                />
             </Col>
+            <button type="submit">⏎</button>
 
             <Form.Text className="text-muted">
               <ToggleInlineTranslation bilingual={helpPrompt}/>
-            </Form.Text>
+            </Form.Text>  
           </Form.Group>
         </Form>
       </div>

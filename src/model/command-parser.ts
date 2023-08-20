@@ -41,7 +41,11 @@ type Command = {
     l1: string,
     l2: string,
     helpText: BilingualText,
-    execute: (rest: string, gameState: GameState) => {gameState: GameState, storyState: StoryState}
+    execute: (rest: string, gameState: GameState) => {gameState: GameState, storyState: StoryState},
+    getValidCommands: (gameState: GameState) => {
+        l1: Array<String>,
+        l2: Array<String>
+    }
 }
 
 /**
@@ -60,6 +64,12 @@ let commands: Array<Command> = [
                 storyState: {
                     story: getHelpText()
                 }
+            }
+        },
+        getValidCommands: (gameState: GameState) => {
+            return {
+                l1: ['help'],
+                l2: [GAELIC_HELP_COMMAND]
             }
         }
     },
@@ -84,14 +94,20 @@ let commands: Array<Command> = [
                     ]
                 }
             }
+        },
+        getValidCommands: (gameState: GameState) => {
+            return {
+                l1: ['look'],
+                l2: ['seall']
+            }
         }
     },
     
     // Go
     {
         l1: 'go',
-        l2: 'dol',
-        helpText: {l1: 'Go in a direction', l2: 'Dol ann an rathad'},
+        l2: 'rach',
+        helpText: {l1: 'Go in a direction', l2: 'Rach ann an rathad'},
         execute: (rest: string, gameState: GameState) => {
             if (!rest) {
                 return {
@@ -144,6 +160,12 @@ let commands: Array<Command> = [
                     ]
                 }
             }
+        },
+        getValidCommands: (gameState: GameState) => {
+            return {
+                l1: gameState.room.exits.map(exit => 'go ' + exit.direction.l1),
+                l2: gameState.room.exits.map(exit => 'rach ' + exit.direction.l2),
+            }
         }
     }
 ];
@@ -161,10 +183,19 @@ function getHelpText(): Story {
     });
 }
 
+export function getValidCommandInputs(gameState: GameState): Array<String> {
+    return commands.flatMap(command => {
+        let validCommands = command.getValidCommands(gameState);
+
+        // Combine all l2 and l1 inputs
+        return validCommands.l2.concat(validCommands.l1);
+    });
+}
+
 export function executeCommand(input: string, gameState: GameState, storyState: StoryState): {gameState: GameState, storyState: StoryState} {
     let inputWords = input.split(' ');
     let rest = input.substring(input.indexOf(' ') + 1);
-    
+
     for (let command of commands) {
         // TODO find the longest prefix of a command that matches, like classic parser games
         if ([command.l1, command.l2].includes(inputWords[0])) {

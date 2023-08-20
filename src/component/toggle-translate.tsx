@@ -11,6 +11,7 @@ export function ToggleInlineTranslation({bilingual}: {bilingual: BilingualText})
 
     const l2ClassNames = classNames({
         "l2-text": true,
+        "fade-in-text": true,
         "highlight-for-translation": translate
     });
 
@@ -19,7 +20,7 @@ export function ToggleInlineTranslation({bilingual}: {bilingual: BilingualText})
             onClick={() => toggle()}>
             {bilingual.l2}
         </span>
-        {translate && <span className="l1-text highlight-for-translation"
+        {translate && <span className="l1-text highlight-for-translation fade-in-text"
             onClick={() => toggle()}>
             {' '}({bilingual.l1})
         </span>}
