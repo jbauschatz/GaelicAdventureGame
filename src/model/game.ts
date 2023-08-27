@@ -10,10 +10,16 @@ export type Room = {
     name: BilingualText,
     description: Paragraph,
     characters: Array<Character>,
+    items: Array<Item>,
     exits: Array<{direction: BilingualText, room: Room}>
 }
 
 export type Character = {
+    name: BilingualText,
+    items: Array<Item>,
+}
+
+export type Item = {
     name: BilingualText
 }
 
@@ -43,12 +49,19 @@ export function newGame(): GameState {
         characters: [
             {
                 name: {l1: "a skeleton", l2: "cnàimhneach"},
+                items: [],
             },
             {
                 name: {l1: "a spider", l2: "damhan"},
+                items: [],
             },
         ],
-        exits: []
+        items: [
+            {
+                name: {l1: "a sword", l2: "claidheamh"},
+            },
+        ],
+        exits: [],
     }
 
     let tunnel: Room = {
@@ -60,6 +73,12 @@ export function newGame(): GameState {
         characters: [
             {
                 name: {l1: "a rat", l2: "radan"},
+                items: [],
+            },
+        ],
+        items: [
+            {
+                name: {l1: "a key", l2: "iuchair"},
             },
         ],
         exits: []
@@ -69,6 +88,7 @@ export function newGame(): GameState {
     return {
         player: {
             name: {l1: "you", l2: "sibh"},
+            items: [],
         },
         room: startingRoom
     }

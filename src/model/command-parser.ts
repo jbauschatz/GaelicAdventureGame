@@ -1,4 +1,5 @@
-import { GameState, Room } from "./game";
+import _ from "lodash";
+import { GameState, Item, Room } from "./game";
 import { BilingualText, buildOxfordCommaList } from "./language";
 import { Paragraph, Story, StoryState } from "./story";
 
@@ -8,26 +9,40 @@ export const GAELIC_HELP_COMMAND = 'cuideachadh';
  * Narrates the Look command by describing the player's current location
  */
 export function look(gameState: GameState): Story {
-    return [
-        // Heading - title of room
-        {heading: gameState.room.name},
+    let story: Story = [];
 
-        // Room description
-        gameState.room.description,
+    // Heading - title of room
+    story.push({heading: gameState.room.name});
 
-        // Exits
-        describeExits(gameState.room),
+    // Room description
+    story.push(gameState.room.description);
 
-        // Occupants
-        {paragraphElements: [
-            {l1: "You see:", l2: "Chì thu:"},
-            ...buildOxfordCommaList(
-                gameState.room.characters
-                    .filter(character => character != gameState.player)
-                    .map(character => character.name)
-            )
-        ]}
-    ];
+    // Items
+    if (gameState.room.items.length > 0) {
+        story.push(describeItems(gameState.room));
+    }
+
+    // Exits
+    story.push(describeExits(gameState.room));
+
+    // Occupants
+    story.push({paragraphElements: [
+        {l1: "You see:", l2: "Chì thu:"},
+        ...buildOxfordCommaList(
+            gameState.room.characters
+                .filter(character => character != gameState.player)
+                .map(character => character.name)
+        )
+    ]});
+
+    return story;
+}
+
+function describeItems(room: Room): Paragraph {
+    return {paragraphElements: [
+        {l1: "You see:", l2: "Chì thu:"},
+        ...buildOxfordCommaList(room.items.map(item => item.name))
+    ]};
 }
 
 function describeExits(room: Room): Paragraph {
@@ -98,7 +113,47 @@ let commands: Array<Command> = [
         getValidCommands: (gameState: GameState) => {
             return {
                 l1: ['look'],
-                l2: ['seall']
+                l2: ['seall'],
+            }
+        }
+    },
+    
+    // INVENTORY
+    {
+        l1: 'inventory',
+        l2: 'maoin-chunntas',
+        helpText: {l1: '...', l2: '...'},
+        execute: (rest: string, gameState: GameState) => {
+            let paragraph: Paragraph;
+
+            if (gameState.player.items.length > 0) {
+                // List items in inventory
+                paragraph = {
+                    paragraphElements: [
+                        {l1: "You have:", l2: "Agaibh:"},
+                        ...buildOxfordCommaList(gameState.player.items.map(item => item.name))
+                    ]
+                }
+            } else {
+                // No items in inventory
+                paragraph = {
+                    paragraphElements: [
+                        {l1: "You don't have anything.", l2: "Chan eil dad agaibh."},
+                    ]
+                }
+            }
+
+            return {
+                gameState,
+                storyState: {
+                    story: [paragraph]
+                }
+            }
+        },
+        getValidCommands: (gameState: GameState) => {
+            return {
+                l1: ['inventory'],
+                l2: ['maoin-chunntas']
             }
         }
     },
@@ -167,7 +222,69 @@ let commands: Array<Command> = [
                 l2: gameState.room.exits.map(exit => 'rach ' + exit.direction.l2),
             }
         }
-    }
+    },
+
+    
+    // TAKE an item
+    {
+        l1: 'take',
+        l2: 'gabh',
+        helpText: {l1: 'Take something', l2: 'Gabh rudeigin'},
+        execute: (rest: string, gameState: GameState) => {
+            // TODO identify the item in the room
+            let itemsByName = findItemByName(rest, gameState.room.items);
+            if (itemsByName.length === 0) {
+                return {
+                    gameState,
+                    storyState: {
+                        story: [
+                            // Narrate the item cannot be found
+                            {paragraphElements: [
+                                {
+                                    l1: `There is nothing like that here.`,
+                                    l2: `Chan eil dad mar sin an seo.`
+                                }
+                            ]}
+                        ]
+                    }
+                };
+            }
+
+            // TODO give feedback if multiple items are found
+            let item = itemsByName[0];
+            return {
+                // TODO add the item to the player's inventory
+                gameState: {
+                    player: {
+                        ...gameState.player,
+                        items: [
+                            ...gameState.player.items,
+                            item
+                        ]
+                    },
+                    room: {
+                        ...gameState.room,
+                        items: _.without(gameState.room.items, item)
+                    }
+                },
+                storyState: {
+                    story: [
+                        // Narrate the player looking around
+                        {paragraphElements: [
+                            {l1: `You take ${item.name.l1}.`, l2: `Gabhaidh tu ${item.name.l2}.`}
+                        ]},
+                    ]
+                }
+            }
+        },
+        getValidCommands: (gameState: GameState) => {
+            return {
+                l1: gameState.room.items.map(item => 'take ' + item.name.l1),
+                l2: gameState.room.items.map(item => 'gabh ' + item.name.l2),
+            };
+        }
+    },
+    
 ];
 
 /**
@@ -190,6 +307,13 @@ export function getValidCommandInputs(gameState: GameState): Array<String> {
         // Combine all l2 and l1 inputs
         return validCommands.l2.concat(validCommands.l1);
     });
+}
+
+export function findItemByName(name: string, items: Array<Item>): Array<Item>{
+    // Get all items where l1 or l2 matches the given name
+    return items.filter(item => 
+        [item.name.l1, item.name.l2].includes(name)
+    );
 }
 
 export function executeCommand(input: string, gameState: GameState, storyState: StoryState): {gameState: GameState, storyState: StoryState} {
