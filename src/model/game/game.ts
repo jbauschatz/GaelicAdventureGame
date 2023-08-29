@@ -1,5 +1,5 @@
-import { BilingualText } from "./language"
-import { Paragraph } from "./story"
+import { BilingualText } from "../bilingual-story/language"
+import { Paragraph } from "../bilingual-story/story"
 
 export type GameState = {
     player: Character,

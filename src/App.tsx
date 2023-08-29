@@ -3,13 +3,15 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Col, Form, Row } from 'react-bootstrap';
 import { Controller, useForm } from 'react-hook-form';
-import { newGame } from './model/game';
-import { GAELIC_HELP_COMMAND, executeCommand, getValidCommandInputs, look } from './model/command-parser';
+import { newGame } from './model/game/game';
+import { executeCommand, getValidCommandInputs } from './model/game/command/command-parser';
 import { ToggleInlineTranslation } from './component/toggle-translate';
-import { Story, StoryState } from './model/story';
+import { Story, StoryState } from './model/bilingual-story/story';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { StoryView } from './component/story-view';
+import { look } from './model/game/command/look-command';
+import { GAELIC_HELP_COMMAND } from './model/game/command/help-command';
 
 function App() {
   let [gameState, setGameState] = useState(newGame());
