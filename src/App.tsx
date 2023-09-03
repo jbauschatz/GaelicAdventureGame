@@ -1,7 +1,7 @@
-import React, { useState, useMemo, Ref, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Col, Form, Row } from 'react-bootstrap';
+import { Col, Container, Form, Row } from 'react-bootstrap';
 import { Controller, useForm } from 'react-hook-form';
 import { newGame } from './model/game/game';
 import { executeCommand, getValidCommandInputs } from './model/game/command/command-parser';
@@ -29,7 +29,7 @@ function App() {
 
   let [storyState, setStoryState] = useState({story: story} as StoryState);
 
-  const { register, handleSubmit, control } = useForm();
+  const { handleSubmit, control } = useForm();
 
   let onEnterCommand = function(data: any) {
     if (data.command) {
@@ -48,39 +48,45 @@ function App() {
   );
 
   return (
-    <div className="App">
-      <StoryView storyState={storyState}/>
+    <div>
+      <Container className="vh-100 d-flex flex-column"> 
+        <Row className="h-100 overflow-y-scroll" style={{flexDirection: "column-reverse"}}>
+            <StoryView storyState={storyState}/>
+        </Row>
 
-      <div>
-        <Form onSubmit={handleSubmit(onEnterCommand)}>
-          <Form.Group as={Row} className="mb-3" controlId="command">
-            <Form.Label column sm={2}>
-              <ToggleInlineTranslation bilingual={{l1: "command", l2: "comannd"}}/>
-              {': '}
-            </Form.Label>
-            <Col sm={10}>
-              <Controller
-                  control={control}
-                  name="command"
-                  render={({ field, fieldState }) => (
-                    <Typeahead
-                      {...field}
-                      id="command"
-                      options={validInputs}
-                      clearButton
-                      flip
-                    ></Typeahead>
-                  )}
-                />
-            </Col>
-            <button type="submit">⏎</button>
+        <Row>
+          <div className="commands">
+            <Form onSubmit={handleSubmit(onEnterCommand)}>
+              <Form.Group as={Row} className="mb-3" controlId="command">
+                <Form.Label column sm={2}>
+                  <ToggleInlineTranslation bilingual={{l1: "command", l2: "comannd"}}/>
+                  {': '}
+                </Form.Label>
+                <Col sm={10}>
+                  <Controller
+                      control={control}
+                      name="command"
+                      render={({ field, fieldState }) => (
+                        <Typeahead
+                          {...field}
+                          id="command"
+                          options={validInputs}
+                          clearButton
+                          flip
+                        ></Typeahead>
+                      )}
+                    />
+                </Col>
+                <button type="submit">⏎</button>
 
-            <Form.Text className="text-muted">
-              <ToggleInlineTranslation bilingual={helpPrompt}/>
-            </Form.Text>  
-          </Form.Group>
-        </Form>
-      </div>
+                <Form.Text className="text-muted">
+                  <ToggleInlineTranslation bilingual={helpPrompt}/>
+                </Form.Text>  
+              </Form.Group>
+            </Form>
+          </div>
+        </Row>
+      </Container>
     </div>
   );
 }

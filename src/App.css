@@ -1,10 +1,12 @@
+
 .App {
-  text-align: center;
 }
 
 .story {
   text-align: left;
-  margin-left: 100px;
+}
+
+.commands {
 }
 
 .l1-text {
