@@ -42,10 +42,8 @@ function App() {
             <StoryView storyState={storyState}/>
         </Row>
 
-        <Row>
-          <div className="commands">
-            <CommandInput gameState={gameState} onEnterCommand={(commandInput) => onEnterCommand(commandInput)}/>
-          </div>
+        <Row className="command-input">
+          <CommandInput gameState={gameState} onEnterCommand={(commandInput) => onEnterCommand(commandInput)}/>
         </Row>
       </Container>
     </div>

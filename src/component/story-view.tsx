@@ -2,16 +2,16 @@ import { Paragraph, StoryState, UserInput } from "../model/bilingual-story/story
 import { ToggleInlineTranslation } from "./toggle-translate";
 
 export function StoryView({storyState} : {storyState: StoryState}) {
-    return <div className="story">
+  return <div className="story">
     {storyState.story.map((storyElement, storyIndex) => {
       if ('heading' in storyElement) {
-        return <h4>
+        return <h4 className="paragraph-header">
           <ToggleInlineTranslation bilingual={storyElement.heading}/>
         </h4>
       } else if ('input' in storyElement) {
         let input: UserInput = storyElement;
         return <div className="player-input">
-          {'> ' }{input.input}
+          {'> '}{input.input}
         </div>;
       } else {
         let paragraph: Paragraph = storyElement;
