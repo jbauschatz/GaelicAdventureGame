@@ -1,20 +1,25 @@
 
-.App {
+.console {
+  background-color: white;
+  font-family: monospace;
 }
 
 .story {
   text-align: left;
 }
 
-.commands {
+.story > .player-input {
+  color: orange;
 }
 
 .l1-text {
   color: gray;
+  /* text-shadow: 0 0 2px black; */
 }
 
 .l2-text {
   color: black;
+  /* text-shadow: 0 0 2px gray; */
 }
 
 .highlight-for-translation {

@@ -10,8 +10,8 @@ export function StoryView({storyState} : {storyState: StoryState}) {
         </h4>
       } else if ('input' in storyElement) {
         let input: UserInput = storyElement;
-        return <div>
-          {'>' }{input.input}
+        return <div className="player-input">
+          {'> ' }{input.input}
         </div>;
       } else {
         let paragraph: Paragraph = storyElement;
