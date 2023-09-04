@@ -1,3 +1,12 @@
+# Introduction
+This is a bilingual "Text-Based Adventure Game" in English and Gàidhlig (Scottish Gaelic), in the spirit of classic retro-games.
+
+This game aims to provide an immersive language experience, while giving the player full control over translating the text into English. The game does not intend to directly teach Gàidhlig, but to be one element of a learner's journey.
+
+In the future we are hoping to support other languages, but Gàidhlig-English is the reference implementation of this project.
+
+This project is currently deployed at https://jbauschatz.github.io/GaelicAdventureGame/.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
