@@ -54,10 +54,10 @@ export function CommandInput({gameState, onEnterCommand}: CommandInputProperties
                 <Col sm={2}>
                     <Button variant="secondary" type="submit">⏎</Button>
                 </Col>
-    {/* 
+    
                 <Form.Text muted>
                     <ToggleInlineTranslation bilingual={GLOBAL_HELP_PROMPT}/>
-                </Form.Text> */}
+                </Form.Text>
             </Form.Group>
         </Form>
     </div>
