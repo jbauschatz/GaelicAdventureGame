@@ -1,6 +1,6 @@
 import _ from "lodash";
-import { GameState } from "../game";
 import { Command, findItemByName } from "./command-parser";
+import { GameState } from "../model/game/game-state";
 
 export const TAKE_COMMAND: Command = {
     l1: 'take',

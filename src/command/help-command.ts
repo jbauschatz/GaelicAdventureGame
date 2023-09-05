@@ -1,5 +1,5 @@
-import { Story } from "../../bilingual-story/story"
-import { GameState } from "../game"
+import { Story } from "../model/bilingual-story/story"
+import { GameState } from "../model/game/game-state";
 import { Command, REGISTERED_COMMANDS } from "./command-parser"
 
 export const GAELIC_HELP_COMMAND = 'cuideachadh';

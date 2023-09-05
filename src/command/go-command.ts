@@ -1,4 +1,4 @@
-import { GameState } from "../game";
+import { GameState } from "../model/game/game-state";
 import { Command } from "./command-parser";
 import { look } from "./look-command";
 

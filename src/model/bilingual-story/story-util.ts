@@ -1,12 +1,9 @@
-
-export type BilingualText = {
-    l1: string;
-    l2: string;
-}
+import { BilingualText } from "./bilingual-text";
+import { ParagraphElement } from "./story";
 
 export const CONJUNCTION_AND = { l1: 'and', l2: 'agus'};
 
-export function buildOxfordCommaList(texts: Array<BilingualText>): Array<BilingualText | string> {
+export function buildOxfordCommaList(texts: Array<BilingualText>): Array<ParagraphElement> {
     if (texts.length === 1) {
         return texts
     } else if (texts.length === 2) {

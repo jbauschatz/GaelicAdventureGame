@@ -1,44 +1,15 @@
-import { BilingualText } from "../bilingual-story/language"
-import { Paragraph } from "../bilingual-story/story"
-
-export type GameState = {
-    player: Character,
-    room: Room,
-}
-
-export type Room = {
-    name: BilingualText,
-    description: Paragraph,
-    characters: Array<Character>,
-    items: Array<Item>,
-    exits: Array<{direction: BilingualText, room: Room}>
-}
-
-export type Character = {
-    name: BilingualText,
-    items: Array<Item>,
-}
-
-export type Item = {
-    name: BilingualText
-}
+import { BilingualText } from "../model/bilingual-story/bilingual-text";
+import { GameState } from "../model/game/game-state";
+import { Room } from "../model/game/room";
 
 const directionNorth = {l1: 'north', l2: 'gu tuath'};
 const directionSouth = {l1: 'south', l2: 'gu deas'};
 const directionEast = {l1: 'east', l2: 'gu ear'};
 const directionWest = {l1: 'west', l2: 'an iar'};
 
-function joinRooms(room1: Room, room2: Room, direction: BilingualText, returnDirection: BilingualText) {
-    room1.exits.push({
-        direction: direction,
-        room: room2
-    });
-    room2.exits.push({
-        direction: returnDirection,
-        room: room1
-    });
-}
-
+/**
+ * Generates a GameState representing the initial state of a new game
+ */
 export function newGame(): GameState {
     let startingRoom: Room = {
         name: {l1: 'Cave', l2: "Uamh"},
@@ -92,4 +63,15 @@ export function newGame(): GameState {
         },
         room: startingRoom
     }
+}
+
+function joinRooms(room1: Room, room2: Room, direction: BilingualText, returnDirection: BilingualText) {
+    room1.exits.push({
+        direction: direction,
+        room: room2
+    });
+    room2.exits.push({
+        direction: returnDirection,
+        room: room1
+    });
 }

@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row } from 'react-bootstrap';
-import { newGame } from './model/game/game';
-import { executeCommand } from './model/game/command/command-parser';
+import { executeCommand } from './command/command-parser';
 import { Story, StoryState } from './model/bilingual-story/story';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
-import { StoryView } from './component/story-view';
-import { look } from './model/game/command/look-command';
-import { GAELIC_HELP_COMMAND } from './model/game/command/help-command';
-import { CommandInput } from './component/command-input';
+import { StoryView } from './view/component/story-view';
+import { look } from './command/look-command';
+import { GAELIC_HELP_COMMAND } from './command/help-command';
+import { CommandInput } from './view/component/command-input';
+import { newGame } from './generation/game-generator';
 
 
 export const GLOBAL_HELP_PROMPT = {l1: "Type 'help' for help.", l2: `Clò-sgrìobh '${GAELIC_HELP_COMMAND}' airson cuideachadh.`}

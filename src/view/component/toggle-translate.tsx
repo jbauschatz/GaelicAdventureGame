@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { BilingualText } from "../model/bilingual-story/language";
 import classNames from "classnames";
+import { BilingualText } from "../../model/bilingual-story/bilingual-text";
 
 export function ToggleInlineTranslation({bilingual}: {bilingual: BilingualText}) {
     let [translate, setTranslate] = useState(false);

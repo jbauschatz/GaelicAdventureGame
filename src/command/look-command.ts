@@ -1,6 +1,7 @@
-import { buildOxfordCommaList } from "../../bilingual-story/language";
-import { Paragraph, Story } from "../../bilingual-story/story";
-import { GameState, Room } from "../game";
+import { buildOxfordCommaList } from "../model/bilingual-story/story-util";
+import { Paragraph, Story } from "../model/bilingual-story/story";
+import { GameState } from "../model/game/game-state";
+import { Room } from "../model/game/room";
 import { Command } from "./command-parser";
 
 export const LOOK_COMMAND: Command = {

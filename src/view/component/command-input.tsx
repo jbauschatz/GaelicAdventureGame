@@ -3,9 +3,9 @@ import { ToggleInlineTranslation } from "./toggle-translate";
 import { Controller, useForm } from "react-hook-form";
 import { Typeahead } from "react-bootstrap-typeahead";
 import { useMemo } from "react";
-import { getValidCommandInputs } from "../model/game/command/command-parser";
-import { GameState } from "../model/game/game";
-import { GLOBAL_HELP_PROMPT } from "../App";
+import { getValidCommandInputs } from "../../command/command-parser";
+import { GLOBAL_HELP_PROMPT } from "../../App";
+import { GameState } from "../../model/game/game-state";
 
 type CommandInputProperties = {
     gameState: GameState,

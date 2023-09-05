@@ -1,12 +1,13 @@
 import _ from "lodash";
-import { GameState, Item } from "../game";
-import { BilingualText } from "../../bilingual-story/language";
-import { Paragraph,  Story,  StoryState } from "../../bilingual-story/story";
+import { Paragraph,  Story,  StoryState } from "../model/bilingual-story/story";
 import { HELP_COMMAND } from "./help-command";
 import { LOOK_COMMAND } from "./look-command";
 import { INVENTORY_COMMAND } from "./inventory-command";
 import { GO_COMMAND } from "./go-command";
 import { TAKE_COMMAND } from "./take-command";
+import { GameState } from "../model/game/game-state";
+import { Item } from "../model/game/item";
+import { BilingualText } from "../model/bilingual-story/bilingual-text";
 
 /**
  * A command that can be executed in the game.

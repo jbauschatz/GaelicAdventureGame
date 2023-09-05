@@ -1,4 +1,4 @@
-import { Paragraph, StoryState, UserInput } from "../model/bilingual-story/story";
+import { Paragraph, StoryState, UserInput } from "../../model/bilingual-story/story";
 import { ToggleInlineTranslation } from "./toggle-translate";
 
 export function StoryView({storyState} : {storyState: StoryState}) {
