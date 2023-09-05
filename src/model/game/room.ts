@@ -1,5 +1,5 @@
 import { BilingualText } from "../bilingual-story/bilingual-text"
-import { Paragraph } from "../bilingual-story/story"
+import { StoryElement } from "../bilingual-story/story"
 import { Character } from "./character"
 import { Item } from "./item"
 
@@ -15,7 +15,7 @@ export type Room = {
     /**
      * Description of the Room to be narrated
      */
-    description: Paragraph,
+    description: StoryElement<'paragraph'>,
 
     /**
      * Current occupants of the Room, possibly including the Player Character

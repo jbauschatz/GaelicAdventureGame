@@ -1,6 +1,8 @@
 import _ from "lodash";
-import { Command, findItemByName } from "./command-parser";
+import { findItemByName } from "./command-parser";
 import { GameState } from "../model/game/game-state";
+import { Command } from "./command";
+import { ParagraphElement, StoryElement } from "../model/bilingual-story/story";
 
 export const TAKE_COMMAND: Command = {
     l1: 'take',
@@ -14,12 +16,12 @@ export const TAKE_COMMAND: Command = {
                 gameState,
                 story: [
                     // Narrate the item cannot be found
-                    {paragraphElements: [
-                        {
+                    StoryElement.paragraph({sentences: [
+                        ParagraphElement.bilingual({bilingual: {
                             l1: `There is nothing like that here.`,
                             l2: `Chan eil dad mar sin an seo.`
-                        }
-                    ]}
+                        }})
+                    ]})
                 ]
             };
         }
@@ -27,7 +29,6 @@ export const TAKE_COMMAND: Command = {
         // TODO give feedback if multiple items are found
         let item = itemsByName[0];
         return {
-            // TODO add the item to the player's inventory
             gameState: {
                 player: {
                     ...gameState.player,
@@ -43,9 +44,12 @@ export const TAKE_COMMAND: Command = {
             },
             story: [
                 // Narrate the player looking around
-                {paragraphElements: [
-                    {l1: `You take ${item.name.l1}.`, l2: `Gabhaidh tu ${item.name.l2}.`}
-                ]},
+                StoryElement.paragraph({sentences: [
+                    ParagraphElement.bilingual({bilingual: {
+                        l1: `You take ${item.name.l1}.`,
+                        l2: `Gabhaidh tu ${item.name.l2}.`
+                    }})
+                ]}),
             ]
         }
     },

@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { Paragraph,  Story,  StoryState } from "../model/bilingual-story/story";
+import { ParagraphElement, Story,  StoryElement,  StoryState } from "../model/bilingual-story/story";
 import { HELP_COMMAND } from "./help-command";
 import { LOOK_COMMAND } from "./look-command";
 import { INVENTORY_COMMAND } from "./inventory-command";
@@ -7,28 +7,7 @@ import { GO_COMMAND } from "./go-command";
 import { TAKE_COMMAND } from "./take-command";
 import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
-import { BilingualText } from "../model/bilingual-story/bilingual-text";
-
-/**
- * A command that can be executed in the game.
- * 
- * This handles a lot of different concerns including:
- * - how the player executes the command
- * - how the command modifies the Game State
- * - how the command's effects are narrated to the player
- * 
- * This means there is little separation of concerns but it allows for rapidly adding a command
- */
-export type Command = {
-    l1: string,
-    l2: string,
-    helpText: BilingualText,
-    execute: (rest: string, gameState: GameState) => {gameState: GameState, story: Story},
-    getValidCommands: (gameState: GameState) => {
-        l1: Array<String>,
-        l2: Array<String>
-    }
-}
+import { Command } from "./command";
 
 /**
  * All registered commands which the player can execute
@@ -75,7 +54,7 @@ export function executeCommand(input: string, gameState: GameState, storyState: 
                     // Combine the previous story, the player's input, and the new story
                     story: [
                         ...storyState.story,
-                        {input: input},
+                        StoryElement.userInput({input}),
                         ...newState.story
                     ]
                 }
@@ -87,9 +66,13 @@ export function executeCommand(input: string, gameState: GameState, storyState: 
     return {
         gameState,
         storyState: {
+
+            // Append an error message to the end of the story
             story: [
                 ...storyState.story,
-                {paragraphElements: [{ l1: `Unknown command: "${input}".`, l2: `Comannd neo-aithnichte: "${input}".`}]} as Paragraph
+                StoryElement.paragraph({sentences: [
+                    ParagraphElement.bilingual({bilingual: { l1: `Unknown command: "${input}".`, l2: `Comannd neo-aithnichte: "${input}".`}})
+                ]})
             ]
         },
     }
