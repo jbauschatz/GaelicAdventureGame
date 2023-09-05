@@ -7,6 +7,10 @@ In the future we are hoping to support other languages, but Gàidhlig-English is
 
 This project is currently deployed at https://jbauschatz.github.io/GaelicAdventureGame/.
 
+# Dependencies
+
+This project uses [Variant](https://paarthenon.github.io/variant/docs/next/intro/), an excellent library that adds variant types to TypeScript.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
