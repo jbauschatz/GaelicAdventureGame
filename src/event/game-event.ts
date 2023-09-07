@@ -7,7 +7,7 @@ import { BilingualText } from '../model/bilingual-story/bilingual-text';
 
 export const GameEvent = variant({
     /**
-     * Indicates the Player receives some kind of validation about 
+     * Indicates the Player receives some kind of validation about a command they attempted to run
      */
     commandValidation: fields<{
         message: BilingualText

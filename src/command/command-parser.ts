@@ -48,7 +48,10 @@ export function executeCommand(input: string, gameState: GameState, storyState: 
     for (let command of REGISTERED_COMMANDS) {
         // TODO find the longest prefix of a command that matches, like classic parser games
         if ([command.l1, command.l2].includes(inputWords[0])) {
+            // Determine the GameEvent that transitions to the new GameState
             let gameStateTransition = command.execute(rest, gameState);
+
+            // Narrate the GameEvent
             let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
                 gameStateTransition.event,
                 gameState,
