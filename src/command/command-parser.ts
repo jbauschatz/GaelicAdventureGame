@@ -8,6 +8,7 @@ import { TAKE_COMMAND } from "./take-command";
 import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
 import { Command } from "./command";
+import { GAELIC_ENGLISH_NARRATOR } from "../narrator/gaelic-english-narrator";
 
 /**
  * All registered commands which the player can execute
@@ -47,15 +48,21 @@ export function executeCommand(input: string, gameState: GameState, storyState: 
     for (let command of REGISTERED_COMMANDS) {
         // TODO find the longest prefix of a command that matches, like classic parser games
         if ([command.l1, command.l2].includes(inputWords[0])) {
-            let newState = command.execute(rest, gameState);
+            let gameStateTransition = command.execute(rest, gameState);
+            let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
+                gameStateTransition.event,
+                gameState,
+                gameStateTransition.gameStateAfter
+            );
+
             return {
-                gameState: newState.gameState,
+                gameState: gameStateTransition.gameStateAfter,
                 storyState: {
                     // Combine the previous story, the player's input, and the new story
                     story: [
                         ...storyState.story,
                         StoryElement.userInput({input}),
-                        ...newState.story
+                        ...eventNarration
                     ]
                 }
             }

@@ -6,11 +6,10 @@ import { executeCommand } from './command/command-parser';
 import { ParagraphElement, Story, StoryElement, StoryState } from './model/bilingual-story/story';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import { StoryView } from './view/component/story/story-view';
-import { look } from './command/look-command';
 import { GAELIC_HELP_COMMAND } from './command/help-command';
 import { CommandInput } from './view/component/command-input';
 import { newGame } from './generation/game-generator';
-
+import { narrateRoom } from './narrator/gaelic-english-narrator';
 
 export const GLOBAL_HELP_PROMPT = {l1: "Type 'help' for help.", l2: `Clò-sgrìobh '${GAELIC_HELP_COMMAND}' airson cuideachadh.`}
 
@@ -27,7 +26,7 @@ function App() {
       }}),
       ParagraphElement.bilingual({bilingual: GLOBAL_HELP_PROMPT})
     ]}),
-    ...look(gameState)
+    ...narrateRoom(gameState)
   ];
   let [storyState, setStoryState] = useState({story: story} as StoryState);
 

@@ -1,5 +1,5 @@
+import { GameEvent } from "../event/game-event"
 import { BilingualText } from "../model/bilingual-story/bilingual-text"
-import { Story } from "../model/bilingual-story/story"
 import { GameState } from "../model/game/game-state"
 
 /**
@@ -16,7 +16,7 @@ export type Command = {
     l1: string,
     l2: string,
     helpText: BilingualText,
-    execute: (rest: string, gameState: GameState) => {gameState: GameState, story: Story},
+    execute: (rest: string, gameState: GameState) => {event: GameEvent, gameStateAfter: GameState},
     getValidCommands: (gameState: GameState) => {
         l1: Array<String>,
         l2: Array<String>
