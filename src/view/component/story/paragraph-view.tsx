@@ -8,7 +8,7 @@ export function ParagraphView({paragraph}: {paragraph: StoryElement<'paragraph'>
             return <span key={`sentence${sentenceIndex}`}>
                 {match(sentence, {
                     bilingual: bilingual => <ToggleInlineTranslation bilingual={bilingual.bilingual}/>,
-                    staticText: staticText => <>staticText.text</>
+                    staticText: staticText => <>{staticText.text}</>
                 })}
                 {' '}
             </span>

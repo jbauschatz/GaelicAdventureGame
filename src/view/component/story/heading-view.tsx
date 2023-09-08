@@ -1,4 +1,4 @@
-import { ParagraphElement, StoryElement } from "../../../model/bilingual-story/story";
+import { StoryElement } from "../../../model/bilingual-story/story";
 import { ToggleInlineTranslation } from "../toggle-translate";
 
 export function HeadingView({heading}: {heading: StoryElement<'heading'>}) {
