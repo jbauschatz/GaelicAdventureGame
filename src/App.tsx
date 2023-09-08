@@ -33,7 +33,7 @@ function App() {
   // When a command is ented in the Command Input component, execute it
   let onEnterCommand = function(commandInput: string) {
       // Execute the command and determine the new state
-      let stateTransition = executeCommand(commandInput, gameState, storyState);
+      let stateTransition = executeCommand(commandInput, gameState);
 
       // Narrate the change in state
       let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(

@@ -1,5 +1,4 @@
 import _ from "lodash";
-import { StoryState } from "../model/bilingual-story/story";
 import { HELP_COMMAND } from "./help-command";
 import { LOOK_COMMAND } from "./look-command";
 import { INVENTORY_COMMAND } from "./inventory-command";
@@ -41,7 +40,7 @@ export function findItemByName(name: string, items: Array<Item>): Array<Item>{
     );
 }
 
-export function executeCommand(input: string, gameState: GameState, storyState: StoryState): {event: GameEvent, gameStateAfter: GameState} {
+export function executeCommand(input: string, gameState: GameState): {event: GameEvent, gameStateAfter: GameState} {
     let inputWords = input.split(' ');
     let rest = input.substring(input.indexOf(' ') + 1);
 
