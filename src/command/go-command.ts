@@ -1,5 +1,6 @@
+import { ParagraphElement, StoryElement } from "../model/bilingual-story/story";
 import { GameState } from "../model/game/game-state";
-import { Command } from "./command-parser";
+import { Command } from "./command";
 import { look } from "./look-command";
 
 export const GO_COMMAND: Command = {
@@ -10,12 +11,14 @@ export const GO_COMMAND: Command = {
         if (!rest) {
             return {
                 gameState,
-                story: [{paragraphElements: [
-                    {
-                        l1: 'Type "go" and then the direction you would like to go',
-                        l2: '[Type "go" and then the direction you would like to go]'
-                    }
-                ]}]
+                story: [
+                    StoryElement.paragraph({sentences: [
+                        ParagraphElement.bilingual({bilingual: {
+                            l1: 'Type "go" and then the direction you would like to go',
+                            l2: '[Type "go" and then the direction you would like to go]'
+                        }})
+                    ]})
+                ]
             }
         }
 
@@ -23,12 +26,14 @@ export const GO_COMMAND: Command = {
         if (!exit) {
             return {
                 gameState,
-                story: [{paragraphElements: [
-                    {
-                        l1: `You cannot go "${rest}".`,
-                        l2: `Chan fhaodaidh sibh a dhol "${rest}".`
-                    }
-                ]}]
+                story: [
+                    StoryElement.paragraph({sentences: [
+                        ParagraphElement.bilingual({bilingual: {
+                            l1: `You cannot go "${rest}".`,
+                            l2: `Chan fhaodaidh sibh a dhol "${rest}".`
+                        }})
+                    ]})
+                ]
             }
         }
 
@@ -44,9 +49,12 @@ export const GO_COMMAND: Command = {
             gameState: newGameState,
             story: [
                 // Narrate the movement to the new room
-                {paragraphElements: [
-                    {l1: `You go ${exit.direction.l1}...`, l2: `Thèid sibh ${exit.direction.l2}...`}
-                ]},
+                StoryElement.paragraph({sentences: [
+                    ParagraphElement.bilingual({bilingual: {
+                        l1: `You go ${exit.direction.l1}...`,
+                        l2: `Thèid sibh ${exit.direction.l2}...`
+                    }})
+                ]}),
 
                 // Execute "look" in the new room
                 ...look(newGameState)

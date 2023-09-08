@@ -1,6 +1,7 @@
-import { Story } from "../model/bilingual-story/story"
+import { ParagraphElement, Story, StoryElement } from "../model/bilingual-story/story"
 import { GameState } from "../model/game/game-state";
-import { Command, REGISTERED_COMMANDS } from "./command-parser"
+import { Command } from "./command";
+import { REGISTERED_COMMANDS } from "./command-parser"
 
 export const GAELIC_HELP_COMMAND = 'cuideachadh';
 
@@ -27,10 +28,10 @@ export const HELP_COMMAND: Command = {
  */
 function getHelpText(): Story {
     return REGISTERED_COMMANDS.map(command => {
-        return {paragraphElements: [
-            {l1: command.l1, l2: command.l2},
-            ': ',
-            command.helpText
-        ]};
+        return StoryElement.paragraph({sentences: [
+            ParagraphElement.bilingual({bilingual: {l1: command.l1, l2: command.l2}}),
+            ParagraphElement.staticText({text: ': '}),
+            ParagraphElement.bilingual({bilingual: command.helpText}),
+        ]});
     });
 }

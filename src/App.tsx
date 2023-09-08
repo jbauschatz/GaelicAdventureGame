@@ -3,9 +3,9 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row } from 'react-bootstrap';
 import { executeCommand } from './command/command-parser';
-import { Story, StoryState } from './model/bilingual-story/story';
+import { ParagraphElement, Story, StoryElement, StoryState } from './model/bilingual-story/story';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
-import { StoryView } from './view/component/story-view';
+import { StoryView } from './view/component/story/story-view';
 import { look } from './command/look-command';
 import { GAELIC_HELP_COMMAND } from './command/help-command';
 import { CommandInput } from './view/component/command-input';
@@ -20,10 +20,13 @@ function App() {
 
   // Initialize the game's Story including welcome messages and an initial "look" command
   let story: Story = [
-    {paragraphElements: [
-      {l1: "Welcome to the game.", l2: "Fàilte dhan geama."},
-      GLOBAL_HELP_PROMPT,
-    ]},
+    StoryElement.paragraph({sentences: [
+      ParagraphElement.bilingual({bilingual: {
+        l1: "Welcome to the game.",
+        l2: "Fàilte dhan geama."
+      }}),
+      ParagraphElement.bilingual({bilingual: GLOBAL_HELP_PROMPT})
+    ]}),
     ...look(gameState)
   ];
   let [storyState, setStoryState] = useState({story: story} as StoryState);

@@ -1,4 +1,5 @@
 import { BilingualText } from "../model/bilingual-story/bilingual-text";
+import { ParagraphElement, StoryElement } from "../model/bilingual-story/story";
 import { GameState } from "../model/game/game-state";
 import { Room } from "../model/game/room";
 
@@ -13,10 +14,16 @@ const directionWest = {l1: 'west', l2: 'an iar'};
 export function newGame(): GameState {
     let startingRoom: Room = {
         name: {l1: 'Cave', l2: "Uamh"},
-        description: {paragraphElements: [
-            {l1: "You are in a cave.", l2: "Tha thu ann an uamh."},
-            {l1: "It is dark.", l2: "Tha i dorcha."},
-        ]},
+        description: StoryElement.paragraph({sentences: [
+            ParagraphElement.bilingual({bilingual: {
+                l1: "You are in a cave.",
+                l2: "Tha thu ann an uamh."
+            }}),
+            ParagraphElement.bilingual({bilingual: {
+                l1: "It is dark.",
+                l2: "Tha i dorcha."
+            }}),
+        ]}),
         characters: [
             {
                 name: {l1: "a skeleton", l2: "cnàimhneach"},
@@ -37,10 +44,16 @@ export function newGame(): GameState {
 
     let tunnel: Room = {
         name: {l1: 'Tunnel', l2: "Tunail"},
-        description: {paragraphElements: [
-            {l1: "You are in a tunnel.", l2: "Tha thu ann an tunail."},
-            {l1: "It is dark and a little wet.", l2: "Tha i dorcha 's beagan fliuch."},
-        ]},
+        description: StoryElement.paragraph({sentences: [
+            ParagraphElement.bilingual({bilingual: {
+                l1: "You are in a tunnel.",
+                l2: "Tha thu ann an tunail."
+            }}),
+            ParagraphElement.bilingual({bilingual: {
+                l1: "It is dark and a little wet.",
+                l2: "Tha i dorcha 's beagan fliuch."
+            }}),
+        ]}),
         characters: [
             {
                 name: {l1: "a rat", l2: "radan"},
