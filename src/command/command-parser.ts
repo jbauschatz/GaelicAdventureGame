@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { ParagraphElement, Story,  StoryElement,  StoryState } from "../model/bilingual-story/story";
+import { StoryState } from "../model/bilingual-story/story";
 import { HELP_COMMAND } from "./help-command";
 import { LOOK_COMMAND } from "./look-command";
 import { INVENTORY_COMMAND } from "./inventory-command";
@@ -8,7 +8,7 @@ import { TAKE_COMMAND } from "./take-command";
 import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
 import { Command } from "./command";
-import { GAELIC_ENGLISH_NARRATOR } from "../narrator/gaelic-english-narrator";
+import { GameEvent } from "../event/game-event";
 
 /**
  * All registered commands which the player can execute
@@ -41,49 +41,25 @@ export function findItemByName(name: string, items: Array<Item>): Array<Item>{
     );
 }
 
-export function executeCommand(input: string, gameState: GameState, storyState: StoryState): {gameState: GameState, storyState: StoryState} {
+export function executeCommand(input: string, gameState: GameState, storyState: StoryState): {event: GameEvent, gameStateAfter: GameState} {
     let inputWords = input.split(' ');
     let rest = input.substring(input.indexOf(' ') + 1);
 
     for (let command of REGISTERED_COMMANDS) {
         // TODO find the longest prefix of a command that matches, like classic parser games
         if ([command.l1, command.l2].includes(inputWords[0])) {
-            // Determine the GameEvent that transitions to the new GameState
-            let gameStateTransition = command.execute(rest, gameState);
-
-            // Narrate the GameEvent
-            let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
-                gameStateTransition.event,
-                gameState,
-                gameStateTransition.gameStateAfter
-            );
-
-            return {
-                gameState: gameStateTransition.gameStateAfter,
-                storyState: {
-                    // Combine the previous story, the player's input, and the new story
-                    story: [
-                        ...storyState.story,
-                        StoryElement.userInput({input}),
-                        ...eventNarration
-                    ]
-                }
-            }
+            return command.execute(rest, gameState);
         }
     }
 
     // Unexected command
     return {
-        gameState,
-        storyState: {
-
-            // Append an error message to the end of the story
-            story: [
-                ...storyState.story,
-                StoryElement.paragraph({sentences: [
-                    ParagraphElement.bilingual({bilingual: { l1: `Unknown command: "${input}".`, l2: `Comannd neo-aithnichte: "${input}".`}})
-                ]})
-            ]
-        },
-    }
+        gameStateAfter: gameState,
+        event: GameEvent.commandValidation({
+            message: {
+                l1: `Unknown command: "${input}".`,
+                l2: `Comannd neo-aithnichte: "${input}".`
+            }
+        })
+    };
 }

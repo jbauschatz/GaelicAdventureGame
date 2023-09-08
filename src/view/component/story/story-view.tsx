@@ -1,7 +1,7 @@
 import { StoryState } from "../../../model/bilingual-story/story";
 import { HeadingView } from "./heading-view";
 import { match } from 'variant';
-import { UserInputView } from "./UserInputView";
+import { UserInputView } from "./user-input-view";
 import { ParagraphView } from "./paragraph-view";
 
 export function StoryView({storyState} : {storyState: StoryState}) {
