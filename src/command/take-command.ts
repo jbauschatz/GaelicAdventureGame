@@ -9,7 +9,8 @@ export const TAKE_COMMAND: Command = {
     l2: 'gabh',
     helpText: {l1: 'Take something', l2: 'Gabh rudeigin'},
     execute: (rest: string, gameState: GameState) => {
-        let itemsByName = findItemByName(rest, gameState.room.items);
+        let room = gameState.rooms[gameState.room];
+        let itemsByName = findItemByName(rest, room.items, gameState);
         if (itemsByName.length === 0) {
             return {
                 gameStateAfter: gameState,
@@ -24,30 +25,43 @@ export const TAKE_COMMAND: Command = {
 
         // TODO give feedback if multiple items are found
         let item = itemsByName[0];
+
+        // Add the Item to the Player's inventory
+        let player = gameState.characters[gameState.player]
+        let newPlayer = {
+            ...player,
+            items: [...player.items, item],
+        };
+
+        // Remove the Item from the Room's inventory
+        let newRoom = {
+            ...room,
+            items: _.without(room.items, item),
+        }
+
         return {
             gameStateAfter: {
-                player: {
-                    ...gameState.player,
-                    items: [
-                        ...gameState.player.items,
-                        item
-                    ]
+                ...gameState,
+                characters: {
+                    ...gameState.characters,
+                    [player.id]: newPlayer,
                 },
-                room: {
-                    ...gameState.room,
-                    items: _.without(gameState.room.items, item)
+                rooms: {
+                    ...gameState.rooms,
+                    [room.id]: newRoom
                 }
             },
             event: GameEvent.takeItem({
                 actor: gameState.player,
                 item: item,
-            })
+            }),
         };
     },
     getValidCommands: (gameState: GameState) => {
+        let room = gameState.rooms[gameState.room];
         return {
-            l1: gameState.room.items.map(item => 'take ' + item.name.l1),
-            l2: gameState.room.items.map(item => 'gabh ' + item.name.l2),
+            l1: room.items.map(item => 'take ' + gameState.items[item].name.l1),
+            l2: room.items.map(item => 'gabh ' + gameState.items[item].name.l2),
         };
     }
 }

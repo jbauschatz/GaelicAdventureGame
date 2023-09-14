@@ -1,11 +1,11 @@
 
 import { BilingualText } from "../bilingual-story/bilingual-text";
-import { Item } from "./item";
 
 /**
  * A Character in the game such as the Player Character, an enemy, or other NPC.
  */
 export type Character = {
+    id: string,
     name: BilingualText,
-    items: Array<Item>,
+    items: Array<string>,
 }

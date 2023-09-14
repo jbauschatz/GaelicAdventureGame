@@ -15,7 +15,7 @@ export const GAELIC_ENGLISH_NARRATOR: Narrator = {
             inventory: () => narrateInventory(gameStateAfter),
             look: () => narrateLook(gameStateAfter),
             move: moveEvent => narrateMove(moveEvent, gameStateAfter),
-            takeItem: takeItem => narrateTakeItem(takeItem),
+            takeItem: takeItem => narrateTakeItem(takeItem, gameStateAfter),
         });
     }
 }
@@ -24,39 +24,40 @@ export const GAELIC_ENGLISH_NARRATOR: Narrator = {
  * Narrates the Look command by describing the player's current location
  */
 export function narrateRoom(gameState: GameState): Story {
+    let room = gameState.rooms[gameState.room];
     let story: Story = [];
 
     // Heading - title of room
-    story.push(StoryElement.heading({heading: gameState.room.name}));
+    story.push(StoryElement.heading({heading: room.name}));
 
     // Room description
-    story.push(gameState.room.description);
+    story.push(room.description);
 
     // Items
-    if (gameState.room.items.length > 0) {
-        story.push(describeItems(gameState.room));
+    if (room.items.length > 0) {
+        story.push(describeItems(room, gameState));
     }
 
     // Exits
-    story.push(describeExits(gameState.room));
+    story.push(describeExits(room));
 
     // Occupants
     story.push(StoryElement.paragraph({sentences: [
         ParagraphElement.bilingual({bilingual: {l1: "You see:", l2: "Chì thu:"}}),
         ...buildOxfordCommaList(
-            gameState.room.characters
+            room.characters
                 .filter(character => character != gameState.player)
-                .map(character => character.name)
+                .map(character => gameState.characters[character].name)
         )
     ]}));
 
     return story;
 }
 
-function describeItems(room: Room): StoryElement<'paragraph'> {
+function describeItems(room: Room, gameState: GameState): StoryElement<'paragraph'> {
     return StoryElement.paragraph({sentences: [
         ParagraphElement.bilingual({bilingual: {l1: "You see:", l2: "Chì thu:"}}),
-        ...buildOxfordCommaList(room.items.map(item => item.name))
+        ...buildOxfordCommaList(room.items.map(item => gameState.items[item].name))
     ]});
 }
 
@@ -86,7 +87,8 @@ function narrateHelp(): Story {
 }
 
 function narrateInventory(gameState: GameState): Story {
-    if (gameState.player.items.length > 0) {
+    let player = gameState.characters[gameState.player];
+    if (player.items.length > 0) {
         // List items in inventory
         return [
             StoryElement.paragraph({sentences: [
@@ -94,7 +96,7 @@ function narrateInventory(gameState: GameState): Story {
                     l1: "You have:",
                     l2: "Agaibh:"
                 }}),
-                ...buildOxfordCommaList(gameState.player.items.map(item => item.name))
+                ...buildOxfordCommaList(player.items.map(item => gameState.items[item].name))
             ]})
         ];
     } else {
@@ -139,8 +141,9 @@ function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story 
     ]
 }
 
-function narrateTakeItem(takeItem: GameEvent<'takeItem'>): Story {
-    let itemName = takeItem.item.name;
+function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState): Story {
+    let item = gameState.items[takeItem.item];
+    let itemName = item.name;
 
     return [
         StoryElement.paragraph({sentences: [

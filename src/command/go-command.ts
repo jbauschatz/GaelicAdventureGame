@@ -19,7 +19,8 @@ export const GO_COMMAND: Command = {
             };
         }
 
-        let exit = gameState.room.exits.find(exit => exit.direction.l1 === rest || exit.direction.l2 === rest);
+        let playerRoom = gameState.rooms[gameState.room];
+        let exit = playerRoom.exits.find(exit => exit.direction.l1 === rest || exit.direction.l2 === rest);
         if (!exit) {
             return {
                 gameStateAfter: gameState,
@@ -37,7 +38,7 @@ export const GO_COMMAND: Command = {
         // Move the Player into the new room
         let gameStateAfter = {
             ...gameState,
-            room: newRoom
+            room: newRoom,
         };
 
         return {
@@ -51,9 +52,10 @@ export const GO_COMMAND: Command = {
         };
     },
     getValidCommands: (gameState: GameState) => {
+        let playerRoom = gameState.rooms[gameState.room];
         return {
-            l1: gameState.room.exits.map(exit => 'go ' + exit.direction.l1),
-            l2: gameState.room.exits.map(exit => 'rach ' + exit.direction.l2),
+            l1: playerRoom.exits.map(exit => 'go ' + exit.direction.l1),
+            l2: playerRoom.exits.map(exit => 'rach ' + exit.direction.l2),
         };
     }
 }

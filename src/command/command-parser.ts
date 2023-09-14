@@ -33,11 +33,12 @@ export function getValidCommandInputs(gameState: GameState): Array<String> {
     });
 }
 
-export function findItemByName(name: string, items: Array<Item>): Array<Item>{
+export function findItemByName(name: string, items: Array<string>, gameState: GameState): Array<string>{
     // Get all items where l1 or l2 matches the given name
-    return items.filter(item => 
-        [item.name.l1, item.name.l2].includes(name)
-    );
+    return items.filter(itemId => {
+        let item = gameState.items[itemId];
+        return [item.name.l1, item.name.l2].includes(name)
+    });
 }
 
 export function executeCommand(input: string, gameState: GameState): {event: GameEvent, gameStateAfter: GameState} {

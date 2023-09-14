@@ -20,17 +20,17 @@ export const GameEvent = variant({
         /**
          * The Character doing the moving
          */
-        actor: Character,
+        actor: string,
 
         /**
          * Room the Character is moving from
          */
-        fromRoom: Room,
+        fromRoom: string,
 
         /**
          * Room the Character is moving to
          */
-        toRoom: Room,
+        toRoom: string,
 
         /**
          * Direction the Character is moving as they exit the fromRoom
@@ -45,12 +45,12 @@ export const GameEvent = variant({
         /**
          * The Character taking the item
          */
-        actor: Character,
+        actor: string,
 
         /**
          * The Item being taken
          */
-        item: Item,
+        item: string,
     }>(),
 
     /**
