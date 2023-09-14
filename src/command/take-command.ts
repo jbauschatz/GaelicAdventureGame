@@ -9,7 +9,7 @@ export const TAKE_COMMAND: Command = {
     l2: 'gabh',
     helpText: {l1: 'Take something', l2: 'Gabh rudeigin'},
     execute: (rest: string, gameState: GameState) => {
-        let room = gameState.rooms[gameState.room];
+        let room = gameState.rooms[gameState.currentRoom];
         let itemsByName = findItemByName(rest, room.items, gameState);
         if (itemsByName.length === 0) {
             return {
@@ -58,7 +58,7 @@ export const TAKE_COMMAND: Command = {
         };
     },
     getValidCommands: (gameState: GameState) => {
-        let room = gameState.rooms[gameState.room];
+        let room = gameState.rooms[gameState.currentRoom];
         return {
             l1: room.items.map(item => 'take ' + gameState.items[item].name.l1),
             l2: room.items.map(item => 'gabh ' + gameState.items[item].name.l2),

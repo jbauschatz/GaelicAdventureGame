@@ -99,7 +99,7 @@ function buildGameState(
         characters,
         items,
         player: player.id,
-        room: startingRoom.id,
+        currentRoom: startingRoom.id,
     }
 }
 

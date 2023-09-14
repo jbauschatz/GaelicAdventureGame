@@ -24,7 +24,7 @@ export const GAELIC_ENGLISH_NARRATOR: Narrator = {
  * Narrates the Look command by describing the player's current location
  */
 export function narrateRoom(gameState: GameState): Story {
-    let room = gameState.rooms[gameState.room];
+    let room = gameState.rooms[gameState.currentRoom];
     let story: Story = [];
 
     // Heading - title of room
@@ -138,7 +138,7 @@ function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story 
 
         // Narrate the new Room
         ...narrateRoom(gameStateAfter)
-    ]
+    ];
 }
 
 function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState): Story {

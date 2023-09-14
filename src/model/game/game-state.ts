@@ -11,17 +11,17 @@ import { Room } from "./room";
 export type GameState = {
     
     /**
-     * 
+     * Map of all Rooms in the game by their ids
      */
     rooms: Record<string, Room>,
 
     /**
-     * 
+     * Map of all Characters in the game by their ids
      */
     characters: Record<string, Character>,
 
     /**
-     * 
+     * Map of all items in the game by their ids
      */
     items: Record<string, Item>,
 
@@ -33,6 +33,6 @@ export type GameState = {
     /**
      * The current room the Player Character is in, which is the game's narrative focus
      */
-    room: string,
+    currentRoom: string,
 
 }
