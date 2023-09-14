@@ -1,7 +1,10 @@
 import { BilingualText } from "../model/bilingual-story/bilingual-text";
-import { ParagraphElement, StoryElement } from "../model/bilingual-story/story";
+import { ParagraphElement, Story, StoryElement } from "../model/bilingual-story/story";
+import { Character } from "../model/game/character";
 import { GameState } from "../model/game/game-state";
+import { Item } from "../model/game/item";
 import { Room } from "../model/game/room";
+import { genId } from "./id";
 
 const directionNorth = {l1: 'north', l2: 'gu tuath'};
 const directionSouth = {l1: 'south', l2: 'gu deas'};
@@ -12,9 +15,9 @@ const directionWest = {l1: 'west', l2: 'an iar'};
  * Generates a GameState representing the initial state of a new game
  */
 export function newGame(): GameState {
-    let startingRoom: Room = {
-        name: {l1: 'Cave', l2: "Uamh"},
-        description: StoryElement.paragraph({sentences: [
+    let startingRoom = buildRoom(
+        {l1: 'Cave', l2: "Uamh"},
+        StoryElement.paragraph({sentences: [
             ParagraphElement.bilingual({bilingual: {
                 l1: "You are in a cave.",
                 l2: "Tha thu ann an uamh."
@@ -24,27 +27,18 @@ export function newGame(): GameState {
                 l2: "Tha i dorcha."
             }}),
         ]}),
-        characters: [
-            {
-                name: {l1: "a skeleton", l2: "cnàimhneach"},
-                items: [],
-            },
-            {
-                name: {l1: "a spider", l2: "damhan"},
-                items: [],
-            },
+        [
+            generateSkeleton(),
+            generateSpider(),
         ],
-        items: [
-            {
-                name: {l1: "a sword", l2: "claidheamh"},
-            },
+        [
+            generateSword(),
         ],
-        exits: [],
-    }
+    );
 
-    let tunnel: Room = {
-        name: {l1: 'Tunnel', l2: "Tunail"},
-        description: StoryElement.paragraph({sentences: [
+    let tunnel = buildRoom(
+        {l1: 'Tunnel', l2: "Tunail"},
+        StoryElement.paragraph({sentences: [
             ParagraphElement.bilingual({bilingual: {
                 l1: "You are in a tunnel.",
                 l2: "Tha thu ann an tunail."
@@ -54,37 +48,132 @@ export function newGame(): GameState {
                 l2: "Tha i dorcha 's beagan fliuch."
             }}),
         ]}),
-        characters: [
-            {
-                name: {l1: "a rat", l2: "radan"},
-                items: [],
-            },
+        [
+            generateRat(),
         ],
-        items: [
-            {
-                name: {l1: "a key", l2: "iuchair"},
-            },
+        [
+            generateKey(),
         ],
-        exits: []
-    }
-    joinRooms(startingRoom, tunnel, directionNorth, directionSouth);
+    );
+    joinRooms(startingRoom.room, tunnel.room, directionNorth, directionSouth);
+
+    let player: Character = {
+        id: genId(),
+        name: {l1: "you", l2: "sibh"},
+        items: [],
+    };
+
+    return buildGameState(
+        player,
+        startingRoom.room,
+        [
+            startingRoom,
+            tunnel,
+        ],
+    );
+}
+
+function buildGameState(
+    player: Character,
+    startingRoom: Room,
+    allRooms: Array<RoomWithResources>,
+): GameState {
+    let rooms: Record<string, Room> = {};
+    let characters: Record<string, Character> = {
+        [player.id]: player,
+    };
+    let items: Record<string, Item> = {};
+
+    allRooms.forEach(room => {
+        rooms[room.room.id] = room.room;
+        room.characters.forEach(character => {
+            characters[character.id] = character;
+        });
+        room.items.forEach(item => {
+            items[item.id] = item;
+        });
+    });
 
     return {
-        player: {
-            name: {l1: "you", l2: "sibh"},
-            items: [],
+        rooms,
+        characters,
+        items,
+        player: player.id,
+        currentRoom: startingRoom.id,
+    }
+}
+
+type RoomWithResources = {
+    room: Room,
+    characters: Array<Character>,
+    items: Array<Item>
+};
+
+function buildRoom(
+    name: BilingualText,
+    description: StoryElement<'paragraph'>,
+    characters: Array<Character>,
+    items: Array<Item>,
+): RoomWithResources {
+    return {
+        room: {
+            id: genId(),
+            name,
+            description,
+            characters: characters.map(character => character.id),
+            items: items.map(item => item.id),
+            exits: [],
         },
-        room: startingRoom
+        characters,
+        items,
     }
 }
 
 function joinRooms(room1: Room, room2: Room, direction: BilingualText, returnDirection: BilingualText) {
     room1.exits.push({
         direction: direction,
-        room: room2
+        room: room2.id
     });
     room2.exits.push({
         direction: returnDirection,
-        room: room1
+        room: room1.id
     });
+}
+
+function generateSkeleton(): Character {
+    return {
+        id: genId(),
+        name: {l1: "a skeleton", l2: "cnàimhneach"},
+        items: [],
+    };
+}
+
+function generateSpider(): Character {
+    return {
+        id: genId(),
+        name: {l1: "a spider", l2: "damhan"},
+        items: [],
+    }
+}
+
+function generateRat(): Character {
+    return {
+        id: genId(),
+        name: {l1: "a rat", l2: "radan"},
+        items: [],
+    }
+}
+
+function generateSword(): Item {
+    return {
+        id: genId(),
+        name: {l1: "a sword", l2: "claidheamh"},
+    };
+}
+
+function generateKey(): Item {
+    return {
+        id: genId(),
+        name: {l1: "a key", l2: "iuchair"},
+    };
 }

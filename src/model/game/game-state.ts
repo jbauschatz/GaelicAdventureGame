@@ -1,4 +1,5 @@
 import { Character } from "./character";
+import { Item } from "./item";
 import { Room } from "./room";
 
 /**
@@ -8,13 +9,30 @@ import { Room } from "./room";
  * one GameState to another.
  */
 export type GameState = {
+    
+    /**
+     * Map of all Rooms in the game by their ids
+     */
+    rooms: Record<string, Room>,
+
+    /**
+     * Map of all Characters in the game by their ids
+     */
+    characters: Record<string, Character>,
+
+    /**
+     * Map of all items in the game by their ids
+     */
+    items: Record<string, Item>,
+
     /**
      * The Player Character playing this game
      */
-    player: Character,
+    player: string,
 
     /**
      * The current room the Player Character is in, which is the game's narrative focus
      */
-    room: Room,
+    currentRoom: string,
+
 }

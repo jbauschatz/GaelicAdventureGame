@@ -1,12 +1,15 @@
 import { BilingualText } from "../bilingual-story/bilingual-text"
 import { StoryElement } from "../bilingual-story/story"
-import { Character } from "./character"
-import { Item } from "./item"
 
 /**
  * A Room that exists somewhere in the game's world
  */
 export type Room = {
+    /**
+     * 
+     */
+    id: string,
+
     /**
      * Name of the Room to be displayed in narration
      */
@@ -18,17 +21,17 @@ export type Room = {
     description: StoryElement<'paragraph'>,
 
     /**
-     * Current occupants of the Room, possibly including the Player Character
+     * Ids of current occupants of the Room, possibly including the Player Character
      */
-    characters: Array<Character>,
+    characters: Array<string>,
 
     /**
-     * Items that are found in the Room
+     * Ids of items that are found in the Room
      */
-    items: Array<Item>,
+    items: Array<string>,
 
     /**
      * Possible ways to move from this Room to another Room
      */
-    exits: Array<{direction: BilingualText, room: Room}>
+    exits: Array<{direction: BilingualText, room: string}>
 }
