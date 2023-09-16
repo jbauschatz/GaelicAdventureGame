@@ -5,7 +5,7 @@ import { Narrator } from "./narrator";
 import { GameState } from "../model/game/game-state";
 import { Room } from "../model/game/room";
 import { buildOxfordCommaList } from "../model/bilingual-story/story-util";
-import { REGISTERED_COMMANDS } from "../command/command-parser";
+import { REGISTERED_COMMAND_PARSERS } from "../command/parser/command-parser";
 
 export const GAELIC_ENGLISH_NARRATOR: Narrator = {
     narrateEvent: (event: GameEvent, gameStateBefore: GameState, gameStateAfter: GameState) => {
@@ -77,11 +77,11 @@ function narrateCommandValidation(commandValidation: GameEvent<'commandValidatio
 }
 
 function narrateHelp(): Story {
-    return REGISTERED_COMMANDS.map(command => {
+    return REGISTERED_COMMAND_PARSERS.map(commandParser => {
         return StoryElement.paragraph({sentences: [
-            ParagraphElement.bilingual({bilingual: {l1: command.l1, l2: command.l2}}),
+            ParagraphElement.bilingual({bilingual: {l1: commandParser.l1, l2: commandParser.l2}}),
             ParagraphElement.staticText({text: ': '}),
-            ParagraphElement.bilingual({bilingual: command.helpText}),
+            ParagraphElement.bilingual({bilingual: commandParser.helpText}),
         ]});
     });
 }

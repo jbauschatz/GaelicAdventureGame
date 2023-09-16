@@ -3,7 +3,7 @@ import { ToggleInlineTranslation } from "./toggle-translate";
 import { Controller, useForm } from "react-hook-form";
 import { Typeahead } from "react-bootstrap-typeahead";
 import { useMemo } from "react";
-import { getValidCommandInputs } from "../../command/command-parser";
+import { getValidCommandInputs } from "../../command/parser/command-parser";
 import { GLOBAL_HELP_PROMPT } from "../../App";
 import { GameState } from "../../model/game/game-state";
 

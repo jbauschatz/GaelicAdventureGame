@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row } from 'react-bootstrap';
-import { executeCommand } from './command/command-parser';
+import { parseCommand } from './command/parser/command-parser';
 import { ParagraphElement, Story, StoryElement, StoryState } from './model/bilingual-story/story';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import { StoryView } from './view/component/story/story-view';
-import { GAELIC_HELP_COMMAND } from './command/help-command';
 import { CommandInput } from './view/component/command-input';
 import { newGame } from './generation/game-generator';
 import { GAELIC_ENGLISH_NARRATOR, narrateRoom } from './narrator/gaelic-english-narrator';
+import { GameCommand } from './command/game-command';
+import { GameEvent } from './event/game-event';
+import { isType } from 'variant';
+import { executeCommand } from './command/command-executor';
+import { GAELIC_HELP_COMMAND } from './command/parser/help-command-parser';
 
 export const GLOBAL_HELP_PROMPT = {l1: "Type 'help' for help.", l2: `Clò-sgrìobh '${GAELIC_HELP_COMMAND}' airson cuideachadh.`}
 
@@ -30,27 +34,52 @@ function App() {
   ];
   let [storyState, setStoryState] = useState({story: story} as StoryState);
 
-  // When a command is ented in the Command Input component, execute it
+  // When a command is entered in the Command Input component, execute it
   let onEnterCommand = function(commandInput: string) {
-      // Execute the command and determine the new state
-      let stateTransition = executeCommand(commandInput, gameState);
+      // Parse the user's input
+      let commandOrValidation: GameCommand | GameEvent<'commandValidation'> =
+          parseCommand(commandInput, gameState);
 
-      // Narrate the change in state
-      let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
-        stateTransition.event,
-        gameState,
-        stateTransition.gameStateAfter
-      );
-      // Combine the previous story, the player's input, and the new story
-      setStoryState({
-        story: [
-            ...storyState.story,
-            StoryElement.userInput({input: commandInput}),
-            ...eventNarration
-        ]
-    });
+      if (isType(commandOrValidation, GameEvent.commandValidation)) {
+        let validationEvent: GameEvent<'commandValidation'> = commandOrValidation;
 
-    setGameState(stateTransition.gameStateAfter);
+        // Narrate the command validation
+        let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
+          validationEvent,
+          gameState,
+          gameState
+        );
+        // Combine the previous story, the player's input, and the new validation narration
+        setStoryState({
+          story: [
+              ...storyState.story,
+              StoryElement.userInput({input: commandInput}),
+              ...eventNarration
+          ] 
+        });
+      } else {
+        let command: GameCommand = commandOrValidation;
+
+        // Execute the command and determine the new state
+        let stateTransition = executeCommand(command, gameState);
+
+        // Narrate the change in state
+        let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
+          stateTransition.event,
+          gameState,
+          stateTransition.gameStateAfter
+        );
+        // Combine the previous story, the player's input, and the new story
+        setStoryState({
+          story: [
+              ...storyState.story,
+              StoryElement.userInput({input: commandInput}),
+              ...eventNarration
+          ]
+        });
+
+        setGameState(stateTransition.gameStateAfter);
+      }
   }
 
   return (

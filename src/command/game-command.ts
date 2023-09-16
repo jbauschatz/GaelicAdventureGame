@@ -1,15 +1,7 @@
+import { TypeNames, VariantOf, fields, variant } from "variant";
+import { BilingualText } from "../model/bilingual-story/bilingual-text";
 
-import {variant, fields, VariantOf, TypeNames} from 'variant';
-import { BilingualText } from '../model/bilingual-story/bilingual-text';
-
-export const GameEvent = variant({
-    /**
-     * Indicates the Player receives some kind of validation about a command they attempted to run
-     */
-    commandValidation: fields<{
-        message: BilingualText
-    }>(),
-
+export const GameCommand = variant({
     /**
      * Indicates a Character moves from one Room to another
      */
@@ -65,5 +57,5 @@ export const GameEvent = variant({
      */
     help: {},
 });
-export type GameEvent<T extends TypeNames<typeof GameEvent> = undefined>
-     = VariantOf<typeof GameEvent, T>;
+export type GameCommand<T extends TypeNames<typeof GameCommand> = undefined>
+     = VariantOf<typeof GameCommand, T>;
