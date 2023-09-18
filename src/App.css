@@ -21,6 +21,14 @@
   margin-top: 10px;
 }
 
+.paragraph-topic-icon {
+  margin-right: 10px;
+}
+
+.paragraph-topic-icon.combat {
+  color: darkred;
+}
+
 .l1-text {
   color: gray;
   /* text-shadow: 0 0 2px black; */

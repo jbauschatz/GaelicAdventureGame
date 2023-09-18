@@ -9,7 +9,14 @@ import { Room } from "./room";
  * one GameState to another.
  */
 export type GameState = {
-    
+        
+    /**
+     * Whether the game is currently over.
+     * 
+     * If true, all gameplay should cease.
+     */
+    isGameOver: boolean,
+
     /**
      * Map of all Rooms in the game by their ids
      */

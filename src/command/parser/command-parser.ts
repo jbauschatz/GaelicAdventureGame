@@ -8,6 +8,7 @@ import { INVENTORY_COMMAND_PARSER } from "./inventory-command-parser";
 import { GO_COMMAND_PARSER } from "./go-command-parser";
 import { TAKE_COMMAND_PARSER } from "./take-command-parser";
 import { CommandParser } from "./command";
+import { ATTACK_COMMAND_PARSER } from "./attack-command-parser";
 
 /**
  * Parsers for all commands which the player can execute
@@ -18,6 +19,7 @@ export const REGISTERED_COMMAND_PARSERS: Array<CommandParser> = [
     INVENTORY_COMMAND_PARSER,
     GO_COMMAND_PARSER,
     TAKE_COMMAND_PARSER,
+    ATTACK_COMMAND_PARSER,
 ];
 
 /**
@@ -30,14 +32,6 @@ export function getValidCommandInputs(gameState: GameState): Array<String> {
 
         // Combine all l2 and l1 inputs
         return validCommands.l2.concat(validCommands.l1);
-    });
-}
-
-export function findItemByName(name: string, items: Array<string>, gameState: GameState): Array<string>{
-    // Get all items where l1 or l2 matches the given name
-    return items.filter(itemId => {
-        let item = gameState.items[itemId];
-        return [item.name.l1, item.name.l2].includes(name)
     });
 }
 

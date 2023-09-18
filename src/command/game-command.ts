@@ -43,6 +43,21 @@ export const GameCommand = variant({
     }>(),
 
     /**
+     * Indicates a Character attacks another Character
+     */
+    attack: fields<{
+        /**
+         * The Character attacking
+         */
+        attacker: string,
+
+        /**
+         * The Character being attacked
+         */
+        defender: string,
+    }>(),
+
+    /**
      * Indicates the Player looks at their current Room
      */
     look: {},

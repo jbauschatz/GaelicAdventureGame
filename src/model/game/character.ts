@@ -8,4 +8,6 @@ export type Character = {
     id: string,
     name: BilingualText,
     items: Array<string>,
+    maxHealth: number,
+    currentHealth: number,
 }

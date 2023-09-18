@@ -51,6 +51,31 @@ export const GameEvent = variant({
     }>(),
 
     /**
+     * Indicates a Character attacks another Character
+     */
+    attack: fields<{
+        /**
+         * The Character attacking
+         */
+        attacker: string,
+
+        /**
+         * The Character defending
+         */
+        defender: string,
+
+        /**
+         * Whether the attack killed the defender
+         */
+        isFatal: boolean,
+    }>(),
+
+    /**
+     * 
+     */
+    gameOver: {},
+
+    /**
      * Indicates the Player looks at their current Room
      */
     look: {},

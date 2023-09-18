@@ -1,4 +1,4 @@
-import {variant, fields, VariantOf, TypeNames} from 'variant';
+import { variant, fields, VariantOf, TypeNames } from 'variant';
 import { BilingualText } from "./bilingual-text";
 
 /**
@@ -15,10 +15,25 @@ export type StoryState = {
  */
 export type Story = Array<StoryElement>;
 
+/**
+ * Indicates the "topic" of some narration, which may indicate how it should be formatted of displayed to the user.
+ */
+export type Topic = 'narrative' | 'combat';
+
 export const StoryElement = variant({
-    paragraph: fields<{sentences: Array<ParagraphElement>}>(),
-    heading: fields<{heading: BilingualText}>(),
-    userInput: fields<{input: string}>(),
+    paragraph: (
+        sentences: Array<ParagraphElement>,
+        topic: Topic = 'narrative',
+    ) => ({
+        sentences,
+        topic,
+    }),
+    heading: fields<{
+        heading: BilingualText
+    }>(),
+    userInput: fields<{
+        input: string
+    }>(),
 });
 export type StoryElement<T extends TypeNames<typeof StoryElement> = undefined>
      = VariantOf<typeof StoryElement, T>;

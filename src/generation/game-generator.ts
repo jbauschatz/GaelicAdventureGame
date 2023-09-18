@@ -1,5 +1,5 @@
 import { BilingualText } from "../model/bilingual-story/bilingual-text";
-import { ParagraphElement, Story, StoryElement } from "../model/bilingual-story/story";
+import { ParagraphElement, StoryElement } from "../model/bilingual-story/story";
 import { Character } from "../model/game/character";
 import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
@@ -17,7 +17,7 @@ const directionWest = {l1: 'west', l2: 'an iar'};
 export function newGame(): GameState {
     let startingRoom = buildRoom(
         {l1: 'Cave', l2: "Uamh"},
-        StoryElement.paragraph({sentences: [
+        StoryElement.paragraph([
             ParagraphElement.bilingual({bilingual: {
                 l1: "You are in a cave.",
                 l2: "Tha thu ann an uamh."
@@ -26,7 +26,7 @@ export function newGame(): GameState {
                 l1: "It is dark.",
                 l2: "Tha i dorcha."
             }}),
-        ]}),
+        ]),
         [
             generateSkeleton(),
             generateSpider(),
@@ -38,7 +38,7 @@ export function newGame(): GameState {
 
     let tunnel = buildRoom(
         {l1: 'Tunnel', l2: "Tunail"},
-        StoryElement.paragraph({sentences: [
+        StoryElement.paragraph([
             ParagraphElement.bilingual({bilingual: {
                 l1: "You are in a tunnel.",
                 l2: "Tha thu ann an tunail."
@@ -47,7 +47,7 @@ export function newGame(): GameState {
                 l1: "It is dark and a little wet.",
                 l2: "Tha i dorcha 's beagan fliuch."
             }}),
-        ]}),
+        ]),
         [
             generateRat(),
         ],
@@ -61,6 +61,8 @@ export function newGame(): GameState {
         id: genId(),
         name: {l1: "you", l2: "sibh"},
         items: [],
+        maxHealth: 1,
+        currentHealth: 1,
     };
 
     return buildGameState(
@@ -95,6 +97,7 @@ function buildGameState(
     });
 
     return {
+        isGameOver: false,
         rooms,
         characters,
         items,
@@ -145,14 +148,18 @@ function generateSkeleton(): Character {
         id: genId(),
         name: {l1: "a skeleton", l2: "cnàimhneach"},
         items: [],
+        maxHealth: 2,
+        currentHealth: 2,
     };
 }
 
 function generateSpider(): Character {
     return {
         id: genId(),
-        name: {l1: "a spider", l2: "damhan"},
+        name: {l1: "a big spider", l2: "damhan mòr"},
         items: [],
+        maxHealth: 1,
+        currentHealth: 1,
     }
 }
 
@@ -161,6 +168,8 @@ function generateRat(): Character {
         id: genId(),
         name: {l1: "a rat", l2: "radan"},
         items: [],
+        maxHealth: 1,
+        currentHealth: 1,
     }
 }
 

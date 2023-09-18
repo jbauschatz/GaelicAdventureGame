@@ -23,63 +23,70 @@ function App() {
 
   // Initialize the game's Story including welcome messages and an initial "look" command
   let story: Story = [
-    StoryElement.paragraph({sentences: [
+    StoryElement.paragraph([
       ParagraphElement.bilingual({bilingual: {
         l1: "Welcome to the game.",
         l2: "Fàilte dhan geama."
       }}),
       ParagraphElement.bilingual({bilingual: GLOBAL_HELP_PROMPT})
-    ]}),
+    ]),
     ...narrateRoom(gameState)
   ];
   let [storyState, setStoryState] = useState({story: story} as StoryState);
 
   // When a command is entered in the Command Input component, execute it
   let onEnterCommand = function(commandInput: string) {
-      // Parse the user's input
-      let commandOrValidation: GameCommand | GameEvent<'commandValidation'> =
-          parseCommand(commandInput, gameState);
+    // Do not allow any commands if the game is over
+    if (gameState.isGameOver === true) {
+      return;
+    }
 
-      if (isType(commandOrValidation, GameEvent.commandValidation)) {
-        let validationEvent: GameEvent<'commandValidation'> = commandOrValidation;
+    // Parse the user's input
+    let commandOrValidation: GameCommand | GameEvent<'commandValidation'> =
+        parseCommand(commandInput, gameState);
 
-        // Narrate the command validation
-        let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
-          validationEvent,
-          gameState,
-          gameState
-        );
-        // Combine the previous story, the player's input, and the new validation narration
-        setStoryState({
-          story: [
-              ...storyState.story,
-              StoryElement.userInput({input: commandInput}),
-              ...eventNarration
-          ] 
-        });
-      } else {
-        let command: GameCommand = commandOrValidation;
+    if (isType(commandOrValidation, GameEvent.commandValidation)) {
+      let validationEvent: GameEvent<'commandValidation'> = commandOrValidation;
 
-        // Execute the command and determine the new state
-        let stateTransition = executeCommand(command, gameState);
+      // Narrate the command validation
+      let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
+        validationEvent,
+        gameState,
+        gameState
+      );
+      // Combine the previous story, the player's input, and the new validation narration
+      setStoryState({
+        story: [
+            ...storyState.story,
+            StoryElement.userInput({input: commandInput}),
+            ...eventNarration
+        ] 
+      });
+    } else {
+      let command: GameCommand = commandOrValidation;
 
-        // Narrate the change in state
-        let eventNarration: Story = GAELIC_ENGLISH_NARRATOR.narrateEvent(
-          stateTransition.event,
+      // Execute the command and determine the new state
+      let stateTransition = executeCommand(command, gameState);
+
+      // Narrate the change in state
+      let eventNarration: Story = stateTransition.events.flatMap(event => 
+        GAELIC_ENGLISH_NARRATOR.narrateEvent(
+          event,
           gameState,
           stateTransition.gameStateAfter
-        );
-        // Combine the previous story, the player's input, and the new story
-        setStoryState({
-          story: [
-              ...storyState.story,
-              StoryElement.userInput({input: commandInput}),
-              ...eventNarration
-          ]
-        });
+        )
+      );
+      // Combine the previous story, the player's input, and the new story
+      setStoryState({
+        story: [
+            ...storyState.story,
+            StoryElement.userInput({input: commandInput}),
+            ...eventNarration
+        ]
+      });
 
-        setGameState(stateTransition.gameStateAfter);
-      }
+      setGameState(stateTransition.gameStateAfter);
+    }
   }
 
   return (

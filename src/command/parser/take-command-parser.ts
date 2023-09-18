@@ -1,9 +1,8 @@
-import _ from "lodash";
-import { findItemByName } from "./command-parser";
 import { GameCommand } from "../game-command";
 import { CommandParser } from "./command";
 import { GameState } from "../../model/game/game-state";
 import { GameEvent } from "../../event/game-event";
+import { findItemByName } from "./parser-helpers";
 
 export const TAKE_COMMAND_PARSER: CommandParser = {
     l1: 'take',
