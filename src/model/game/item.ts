@@ -1,4 +1,4 @@
-import { BilingualText } from "../bilingual-story/bilingual-text"
+import { BilingualText } from "../bilingual-text"
 
 /**
  * An Item that exists in the game world

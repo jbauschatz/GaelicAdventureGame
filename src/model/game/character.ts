@@ -1,5 +1,5 @@
 
-import { BilingualText } from "../bilingual-story/bilingual-text";
+import { BilingualText } from "../bilingual-text";
 
 /**
  * A Character in the game such as the Player Character, an enemy, or other NPC.

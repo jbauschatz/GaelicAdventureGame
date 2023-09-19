@@ -1,16 +1,22 @@
 import { Button, Col, Form, Row } from "react-bootstrap";
-import { ToggleInlineTranslation } from "./toggle-translate";
+import { ToggleInlineTranslation } from "./story/toggle-translate";
 import { Controller, useForm } from "react-hook-form";
 import { Typeahead } from "react-bootstrap-typeahead";
 import { useMemo } from "react";
 import { getValidCommandInputs } from "../../command/parser/command-parser";
 import { GLOBAL_HELP_PROMPT } from "../../App";
 import { GameState } from "../../model/game/game-state";
+import { ParagraphElement, StoryElement } from "../../model/bilingual-story/story";
 
 type CommandInputProperties = {
     gameState: GameState,
     onEnterCommand: (commandInput: string) => void;
 }
+
+const COMMAND_PROMPT = ParagraphElement.bilingual({
+    l1: "command",
+    l2: "comannd",
+});
 
 export function CommandInput({gameState, onEnterCommand}: CommandInputProperties) {
 
@@ -33,7 +39,7 @@ export function CommandInput({gameState, onEnterCommand}: CommandInputProperties
         <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group as={Row} className="mb-3" controlId="command">
                 <Form.Label column sm={2}>
-                    <ToggleInlineTranslation bilingual={{l1: "command", l2: "comannd"}}/>
+                    <ToggleInlineTranslation bilingual={COMMAND_PROMPT}/>
                     {': '}
                 </Form.Label>
                 <Col sm={8}>

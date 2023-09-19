@@ -1,5 +1,5 @@
 import { GameEvent } from "../../event/game-event"
-import { BilingualText } from "../../model/bilingual-story/bilingual-text"
+import { BilingualText } from "../../model/bilingual-text"
 import { GameState } from "../../model/game/game-state"
 import { GameCommand } from "../game-command"
 

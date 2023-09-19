@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { StoryElement } from "../../../model/bilingual-story/story"
-import { ToggleInlineTranslation } from "../toggle-translate"
+import { ToggleInlineTranslation } from "./toggle-translate"
 import { match } from 'variant';
 import { faChessKnight } from '@fortawesome/free-solid-svg-icons'
 
@@ -15,7 +15,7 @@ export function ParagraphView({paragraph}: {paragraph: StoryElement<'paragraph'>
         {paragraph.sentences.map((sentence, sentenceIndex) => {
             return <span key={`sentence${sentenceIndex}`}>
                 {match(sentence, {
-                    bilingual: bilingual => <ToggleInlineTranslation bilingual={bilingual.bilingual}/>,
+                    bilingual: bilingual => <ToggleInlineTranslation bilingual={bilingual}/>,
                     staticText: staticText => <>{staticText.text}</>
                 })}
                 {' '}

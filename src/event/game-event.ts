@@ -1,6 +1,6 @@
 
 import {variant, fields, VariantOf, TypeNames} from 'variant';
-import { BilingualText } from '../model/bilingual-story/bilingual-text';
+import { BilingualText } from '../model/bilingual-text';
 
 export const GameEvent = variant({
     /**

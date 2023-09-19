@@ -1,5 +1,5 @@
 import { TypeNames, VariantOf, fields, variant } from "variant";
-import { BilingualText } from "../model/bilingual-story/bilingual-text";
+import { BilingualText } from "../model/bilingual-text";
 
 export const GameCommand = variant({
     /**

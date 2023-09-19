@@ -1,4 +1,4 @@
-import { BilingualText } from "../model/bilingual-story/bilingual-text";
+import { BilingualText } from "../model/bilingual-text";
 import { ParagraphElement, StoryElement } from "../model/bilingual-story/story";
 import { Character } from "../model/game/character";
 import { GameState } from "../model/game/game-state";
@@ -18,42 +18,33 @@ export function newGame(): GameState {
     let startingRoom = buildRoom(
         {l1: 'Cave', l2: "Uamh"},
         StoryElement.paragraph([
-            ParagraphElement.bilingual({bilingual: {
+            ParagraphElement.bilingual({
                 l1: "You are in a cave.",
                 l2: "Tha thu ann an uamh."
-            }}),
-            ParagraphElement.bilingual({bilingual: {
+            }),
+            ParagraphElement.bilingual({
                 l1: "It is dark.",
                 l2: "Tha i dorcha."
-            }}),
+            }),
         ]),
-        [
-            generateSkeleton(),
-            generateSpider(),
-        ],
-        [
-            generateSword(),
-        ],
+        [generateSkeleton(), generateSpider(),],
+        [generateSword()],
     );
 
     let tunnel = buildRoom(
         {l1: 'Tunnel', l2: "Tunail"},
         StoryElement.paragraph([
-            ParagraphElement.bilingual({bilingual: {
+            ParagraphElement.bilingual({
                 l1: "You are in a tunnel.",
                 l2: "Tha thu ann an tunail."
-            }}),
-            ParagraphElement.bilingual({bilingual: {
+            }),
+            ParagraphElement.bilingual({
                 l1: "It is dark and a little wet.",
                 l2: "Tha i dorcha 's beagan fliuch."
-            }}),
+            }),
         ]),
-        [
-            generateRat(),
-        ],
-        [
-            generateKey(),
-        ],
+        [generateRat()],
+        [generateKey()],
     );
     joinRooms(startingRoom.room, tunnel.room, directionNorth, directionSouth);
 
@@ -68,10 +59,7 @@ export function newGame(): GameState {
     return buildGameState(
         player,
         startingRoom.room,
-        [
-            startingRoom,
-            tunnel,
-        ],
+        [startingRoom, tunnel],
     );
 }
 

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import classNames from "classnames";
-import { BilingualText } from "../../model/bilingual-story/bilingual-text";
+import { TextView } from "./text-view";
+import { ParagraphElement } from "../../../model/bilingual-story/story";
 
-export function ToggleInlineTranslation({bilingual}: {bilingual: BilingualText}) {
+export function ToggleInlineTranslation({bilingual}: {bilingual: ParagraphElement<'bilingual'>}) {
     let [translate, setTranslate] = useState(false);
 
     let toggle = function() {
@@ -18,11 +19,11 @@ export function ToggleInlineTranslation({bilingual}: {bilingual: BilingualText})
     return <>
         <span className={l2ClassNames}
             onClick={() => toggle()}>
-            {bilingual.l2}
+            <TextView text={bilingual.l2}/>
         </span>
         {translate && <span className="l1-text highlight-for-translation fade-in-text"
             onClick={() => toggle()}>
-            {' '}({bilingual.l1})
+            {' ('}<TextView text={bilingual.l1}/>{')'}
         </span>}
     </>
-}  
+}

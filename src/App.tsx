@@ -15,7 +15,10 @@ import { isType } from 'variant';
 import { executeCommand } from './command/command-executor';
 import { GAELIC_HELP_COMMAND } from './command/parser/help-command-parser';
 
-export const GLOBAL_HELP_PROMPT = {l1: "Type 'help' for help.", l2: `Clò-sgrìobh '${GAELIC_HELP_COMMAND}' airson cuideachadh.`}
+export const GLOBAL_HELP_PROMPT = ParagraphElement.bilingual({
+  l1: "Type 'help' for help.", 
+  l2: `Clò-sgrìobh '${GAELIC_HELP_COMMAND}' airson cuideachadh.`
+});
 
 function App() {
   // Create a new game when the app loads
@@ -24,11 +27,11 @@ function App() {
   // Initialize the game's Story including welcome messages and an initial "look" command
   let story: Story = [
     StoryElement.paragraph([
-      ParagraphElement.bilingual({bilingual: {
+      ParagraphElement.bilingual({
         l1: "Welcome to the game.",
         l2: "Fàilte dhan geama."
-      }}),
-      ParagraphElement.bilingual({bilingual: GLOBAL_HELP_PROMPT})
+      }),
+      GLOBAL_HELP_PROMPT
     ]),
     ...narrateRoom(gameState)
   ];

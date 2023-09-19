@@ -1,6 +1,6 @@
 import { match } from "variant";
 import { GameEvent } from "../event/game-event";
-import { ParagraphElement, Story, StoryElement } from "../model/bilingual-story/story";
+import { EntityReference, ParagraphElement, Story, StoryElement, ref } from "../model/bilingual-story/story";
 import { Narrator } from "./narrator";
 import { GameState } from "../model/game/game-state";
 import { Room } from "../model/game/room";
@@ -44,36 +44,63 @@ export function narrateRoom(gameState: GameState): Story {
     story.push(describeExits(room));
 
     // Occupants
-    story.push(StoryElement.paragraph([
-        ParagraphElement.bilingual({bilingual: {l1: "You see:", l2: "Chì thu:"}}),
-        ...buildOxfordCommaList(
-            room.characters
-                .filter(character => character !== gameState.player)
-                .map(character => gameState.characters[character].name)
-        )
-    ]));
-
+    story.push(describeCharacters(room, gameState));
+    
     return story;
 }
 
-function describeItems(room: Room, gameState: GameState): StoryElement<'paragraph'> {
+function describeCharacters(room: Room, gameState: GameState): StoryElement<'paragraph'> {
+    let otherCharactersInRoom = room.characters
+        .filter(character => character !== gameState.player)
+        .map(characterId => {
+            let character = gameState.characters[characterId]
+            return {
+                entity: character,
+                name: character.name,
+            };
+        });
+
     return StoryElement.paragraph([
-        ParagraphElement.bilingual({bilingual: {l1: "You see:", l2: "Chì thu:"}}),
-        ...buildOxfordCommaList(room.items.map(item => gameState.items[item].name))
+        ParagraphElement.bilingual({l1: "You see:", l2: "Chì thu:"}),
+        ...buildOxfordCommaList(otherCharactersInRoom)
+    ]);
+}
+
+function describeItems(room: Room, gameState: GameState): StoryElement<'paragraph'> {
+    let itemsInRoom = room.items
+        .map(itemId => {
+            let item = gameState.items[itemId]
+            return {
+                entity: item,
+                name: item.name,
+            };
+        });
+
+    return StoryElement.paragraph([
+        ParagraphElement.bilingual({l1: "You see:", l2: "Chì thu:"}),
+        ...buildOxfordCommaList(itemsInRoom)
     ]);
 }
 
 function describeExits(room: Room): StoryElement<'paragraph'> {
+    let exits = room.exits
+        .map(exit => {
+            return {
+                entity: exit,
+                name: exit.direction,
+            };
+        });
+
     return StoryElement.paragraph([
-        ParagraphElement.bilingual({bilingual: { l1: "You can go:", l2: "Faodaidh sibh a dhol:" }}),
-        ...buildOxfordCommaList(room.exits.map(roomExit => roomExit.direction))
+        ParagraphElement.bilingual({l1: "You can go:", l2: "Faodaidh sibh a dhol:" }),
+        ...buildOxfordCommaList(exits)
     ]);
 }
 
 function narrateCommandValidation(commandValidation: GameEvent<'commandValidation'>): Story {
     return [
         StoryElement.paragraph([
-            ParagraphElement.bilingual({bilingual: commandValidation.message})
+            ParagraphElement.bilingual(commandValidation.message)
         ])
     ];
 }
@@ -81,9 +108,9 @@ function narrateCommandValidation(commandValidation: GameEvent<'commandValidatio
 function narrateHelp(): Story {
     return REGISTERED_COMMAND_PARSERS.map(commandParser => {
         return StoryElement.paragraph([
-            ParagraphElement.bilingual({bilingual: {l1: commandParser.l1, l2: commandParser.l2}}),
+            ParagraphElement.bilingual({l1: commandParser.l1, l2: commandParser.l2}),
             ParagraphElement.staticText({text: ': '}),
-            ParagraphElement.bilingual({bilingual: commandParser.helpText}),
+            ParagraphElement.bilingual(commandParser.helpText),
         ]);
     });
 }
@@ -91,24 +118,33 @@ function narrateHelp(): Story {
 function narrateInventory(gameState: GameState): Story {
     let player = gameState.characters[gameState.player];
     if (player.items.length > 0) {
+        let palyerItems = player.items
+        .map(itemId => {
+            let item = gameState.items[itemId]
+            return {
+                entity: item,
+                name: item.name,
+            };
+        });
+
         // List items in inventory
         return [
             StoryElement.paragraph([
-                ParagraphElement.bilingual({bilingual: {
+                ParagraphElement.bilingual({
                     l1: "You have:",
                     l2: "Agaibh:"
-                }}),
-                ...buildOxfordCommaList(player.items.map(item => gameState.items[item].name))
+                }),
+                ...buildOxfordCommaList(palyerItems)
             ])
         ];
     } else {
         // No items in inventory
         return [
             StoryElement.paragraph([
-                ParagraphElement.bilingual({bilingual: {
+                ParagraphElement.bilingual({
                     l1: "You don't have anything.",
                     l2: "Chan eil dad agaibh."
-                }}),
+                }),
             ])
         ];
     }
@@ -118,7 +154,7 @@ function narrateLook(gameStateAfter: GameState): Story {
     return [
         // Narrate the player looking around
         StoryElement.paragraph([
-            ParagraphElement.bilingual({bilingual: {l1: 'You look around...', l2: 'Seallaidh sibh mun cuairt...'}})
+            ParagraphElement.bilingual({l1: 'You look around...', l2: 'Seallaidh sibh mun cuairt...'})
         ]),
 
         // Narrate the current Room
@@ -132,10 +168,10 @@ function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story 
     return [
         // Narrate the movement to the new room
         StoryElement.paragraph([
-            ParagraphElement.bilingual({bilingual: {
+            ParagraphElement.bilingual({
                 l1: `You go ${toDirection.l1}...`,
                 l2: `Thèid sibh ${toDirection.l2}...`
-            }})
+            })
         ]),
 
         // Narrate the new Room
@@ -149,10 +185,10 @@ function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState):
 
     return [
         StoryElement.paragraph([
-            ParagraphElement.bilingual({bilingual: {
-                l1: `You take ${itemName.l1}.`,
-                l2: `Gabhaidh tu ${itemName.l2}.`
-            }})
+            ParagraphElement.bilingual({
+                l1: ['You take ', ref(item, itemName.l1), '.'],
+                l2: ['Gabhaidh tu ', ref(item, itemName.l2), '.'],
+            })
         ])
     ];
 }
@@ -163,17 +199,17 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
         let defender = gameState.characters[attack.defender];
 
         let attackParagraphElements = [
-            ParagraphElement.bilingual({bilingual: {
-                l1: `You attack ${defender.name.l1}!`,
-                l2: `Sabaidichidh tu ${defender.name.l2}!`,
-            }})
+            ParagraphElement.bilingual({
+                l1: ['You attack ', ref(defender, defender.name.l1), '!'],
+                l2: ['Sabaidichidh tu ', ref(defender, defender.name.l2), '!'],
+            })
         ];
         if (attack.isFatal) {
             attackParagraphElements.push(
-                ParagraphElement.bilingual({bilingual: {
+                ParagraphElement.bilingual({
                     l1: `It dies!`,
                     l2: `Dìthidh e!`,
-                }})
+                })
             )
         }
         return [
@@ -184,17 +220,17 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
     // Case 2: Another Character attacking the Player
     let attacker = gameState.characters[attack.attacker];
     let attackParagraphElements = [
-        ParagraphElement.bilingual({bilingual: {
-            l1: `${attacker.name.l1} attacks you!`,
-            l2: `Sabaidichidh ${attacker.name.l2} thu!`
-        }})
+        ParagraphElement.bilingual({
+            l1: [ref(attacker, attacker.name.l1), ' attacks you!'],
+            l2: ['Sabaidichidh ', ref(attacker, attacker.name.l2), ' thu!'],
+        })
     ];
     if (attack.isFatal) {
         attackParagraphElements.push(
-            ParagraphElement.bilingual({bilingual: {
+            ParagraphElement.bilingual({
                 l1: `You die!`,
                 l2: `Dìthidh thu!`,
-            }})
+            })
         )
     }
     return [
@@ -205,10 +241,10 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
 function narrateGameOver() {
     return [
         StoryElement.paragraph([
-            ParagraphElement.bilingual({bilingual: {
+            ParagraphElement.bilingual({
                 l1: `The game is over.`,
                 l2: `Tha an geama seachad.`,
-            }})
+            })
         ])
     ];
 }
