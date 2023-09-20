@@ -43,8 +43,8 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
                 .filter(character => character !== gameState.player)
                 .map(character => gameState.characters[character]);
         return {
-            l1: enemies.map(enemy => 'fight ' + enemy.name.l1),
-            l2: enemies.map(enemy => 'sabaidich ' + enemy.name.l2),
+            l1: enemies.map(enemy => 'fight ' + enemy.name.english.definite),
+            l2: enemies.map(enemy => 'sabaidich ' + enemy.name.gaelic.definite),
         };
     }
 }

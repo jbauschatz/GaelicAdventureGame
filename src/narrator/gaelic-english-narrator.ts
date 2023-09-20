@@ -1,6 +1,6 @@
 import { match } from "variant";
 import { GameEvent } from "../event/game-event";
-import { EntityReference, ParagraphElement, Story, StoryElement, ref } from "../model/bilingual-story/story";
+import { ParagraphElement, Story, StoryElement, ref } from "../model/bilingual-story/story";
 import { Narrator } from "./narrator";
 import { GameState } from "../model/game/game-state";
 import { Room } from "../model/game/room";
@@ -56,7 +56,10 @@ function describeCharacters(room: Room, gameState: GameState): StoryElement<'par
             let character = gameState.characters[characterId]
             return {
                 entity: character,
-                name: character.name,
+                name: {
+                    l1: character.name.english.indefinite,
+                    l2: character.name.gaelic.indefinite,
+                }
             };
         });
 
@@ -72,7 +75,10 @@ function describeItems(room: Room, gameState: GameState): StoryElement<'paragrap
             let item = gameState.items[itemId]
             return {
                 entity: item,
-                name: item.name,
+                name: {
+                    l1: item.name.english.indefinite,
+                    l2: item.name.gaelic.indefinite,
+                }
             };
         });
 
@@ -123,7 +129,10 @@ function narrateInventory(gameState: GameState): Story {
             let item = gameState.items[itemId]
             return {
                 entity: item,
-                name: item.name,
+                name: {
+                    l1: item.name.english.indefinite,
+                    l2: item.name.gaelic.indefinite,
+                }
             };
         });
 
@@ -186,8 +195,8 @@ function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState):
     return [
         StoryElement.paragraph([
             ParagraphElement.bilingual({
-                l1: ['You take ', ref(item, itemName.l1), '.'],
-                l2: ['Gabhaidh tu ', ref(item, itemName.l2), '.'],
+                l1: ['You take ', ref(item, itemName.english.definite), '.'],
+                l2: ['Gabhaidh tu ', ref(item, itemName.gaelic.definite), '.'],
             })
         ])
     ];
@@ -200,8 +209,8 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
 
         let attackParagraphElements = [
             ParagraphElement.bilingual({
-                l1: ['You attack ', ref(defender, defender.name.l1), '!'],
-                l2: ['Sabaidichidh tu ', ref(defender, defender.name.l2), '!'],
+                l1: ['You attack ', ref(defender, defender.name.english.definite), '!'],
+                l2: ['Sabaidichidh tu ', ref(defender, defender.name.gaelic.definite), '!'],
             })
         ];
         if (attack.isFatal) {
@@ -221,8 +230,8 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
     let attacker = gameState.characters[attack.attacker];
     let attackParagraphElements = [
         ParagraphElement.bilingual({
-            l1: [ref(attacker, attacker.name.l1), ' attacks you!'],
-            l2: ['Sabaidichidh ', ref(attacker, attacker.name.l2), ' thu!'],
+            l1: [ref(attacker, attacker.name.english.definite), ' attacks you!'],
+            l2: ['Sabaidichidh ', ref(attacker, attacker.name.gaelic.definite), ' thu!'],
         })
     ];
     if (attack.isFatal) {

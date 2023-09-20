@@ -33,8 +33,8 @@ export const TAKE_COMMAND_PARSER: CommandParser = {
     getValidCommands: (gameState: GameState) => {
         let room = gameState.rooms[gameState.currentRoom];
         return {
-            l1: room.items.map(item => 'take ' + gameState.items[item].name.l1),
-            l2: room.items.map(item => 'gabh ' + gameState.items[item].name.l2),
+            l1: room.items.map(item => 'take ' + gameState.items[item].name.english.definite),
+            l2: room.items.map(item => 'gabh ' + gameState.items[item].name.gaelic.definite),
         };
     }
 }

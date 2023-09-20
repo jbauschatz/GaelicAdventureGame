@@ -5,6 +5,7 @@ import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
 import { Room } from "../model/game/room";
 import { genId } from "./id";
+import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR } from "../model/language/lexicon";
 
 const directionNorth = {l1: 'north', l2: 'gu tuath'};
 const directionSouth = {l1: 'south', l2: 'gu deas'};
@@ -50,7 +51,7 @@ export function newGame(): GameState {
 
     let player: Character = {
         id: genId(),
-        name: {l1: "you", l2: "sibh"},
+        name: PRONOUN_YOU_SINGULAR,
         items: [],
         maxHealth: 1,
         currentHealth: 1,
@@ -134,7 +135,7 @@ function joinRooms(room1: Room, room2: Room, direction: BilingualText, returnDir
 function generateSkeleton(): Character {
     return {
         id: genId(),
-        name: {l1: "a skeleton", l2: "cnàimhneach"},
+        name: NOUN_SKELETON,
         items: [],
         maxHealth: 2,
         currentHealth: 2,
@@ -144,7 +145,7 @@ function generateSkeleton(): Character {
 function generateSpider(): Character {
     return {
         id: genId(),
-        name: {l1: "a big spider", l2: "damhan mòr"},
+        name: NOUN_BIG_SPIDER,
         items: [],
         maxHealth: 1,
         currentHealth: 1,
@@ -154,7 +155,7 @@ function generateSpider(): Character {
 function generateRat(): Character {
     return {
         id: genId(),
-        name: {l1: "a rat", l2: "radan"},
+        name: NOUN_RAT,
         items: [],
         maxHealth: 1,
         currentHealth: 1,
@@ -164,13 +165,13 @@ function generateRat(): Character {
 function generateSword(): Item {
     return {
         id: genId(),
-        name: {l1: "a sword", l2: "claidheamh"},
+        name: NOUN_SWORD,
     };
 }
 
 function generateKey(): Item {
     return {
         id: genId(),
-        name: {l1: "a key", l2: "iuchair"},
+        name: NOUN_KEY,
     };
 }
