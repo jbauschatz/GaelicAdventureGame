@@ -5,19 +5,29 @@ import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
 import { Room } from "../model/game/room";
 import { genId } from "./id";
-import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR } from "../model/language/lexicon";
+import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER } from "../model/language/lexicon";
 
 const directionNorth = {l1: 'north', l2: 'gu tuath'};
 const directionSouth = {l1: 'south', l2: 'gu deas'};
 const directionEast = {l1: 'east', l2: 'gu ear'};
-const directionWest = {l1: 'west', l2: 'an iar'};
+const directionWest = {l1: 'west', l2: 'gus an iar'};
 
 /**
  * Generates a GameState representing the initial state of a new game
+ * 
+ * Some Gaelic vocabulary:
+ * doras uamha - cave entrance
+ * uamhaidh - cavern
+ * seòmar tunail - tunnel chamber
+ * tuama - tomb  
+ * tuama sheòmraichean - chambered tomb
+ * ro-sheòmar - antechamber
+ * seòmar-toisich - antechamber
  */
 export function newGame(): GameState {
-    let startingRoom = buildRoom(
-        {l1: 'Cave', l2: "Uamh"},
+    
+    let caveEntrance = buildRoom(
+        {l1: 'Cave Entrance', l2: "Doras Uamha"},
         StoryElement.paragraph([
             ParagraphElement.bilingual({
                 l1: "You are in a cave.",
@@ -28,12 +38,12 @@ export function newGame(): GameState {
                 l2: "Tha i dorcha."
             }),
         ]),
-        [generateSkeleton(), generateSpider(),],
+        [generateSpider(),],
         [generateSword()],
     );
 
-    let tunnel = buildRoom(
-        {l1: 'Tunnel', l2: "Tunail"},
+    let tunnelNS = buildRoom(
+        {l1: 'Tunnel Chamber', l2: "Seòmar Tunail"},
         StoryElement.paragraph([
             ParagraphElement.bilingual({
                 l1: "You are in a tunnel.",
@@ -44,23 +54,83 @@ export function newGame(): GameState {
                 l2: "Tha i dorcha 's beagan fliuch."
             }),
         ]),
-        [generateRat()],
+        [],
+        [],
+    );
+    joinRooms(caveEntrance.room, tunnelNS.room, directionNorth, directionSouth);
+
+    let cavern = buildRoom(
+        {l1: 'Big Cavern', l2: "Uamhaidh Mhòr"},
+        StoryElement.paragraph([
+            ParagraphElement.bilingual({
+                l1: "You are in a big cavern.",
+                l2: "Tha thu ann an uamhaidh mhòr."
+            }),
+        ]),
+        [generateBigRat()],
         [generateKey()],
     );
-    joinRooms(startingRoom.room, tunnel.room, directionNorth, directionSouth);
+    joinRooms(tunnelNS.room, cavern.room, directionNorth, directionSouth);
+
+    let tunnelEW = buildRoom(
+        {l1: 'Narrow Tunnel', l2: "Tunail Caol"},
+        StoryElement.paragraph([
+            ParagraphElement.bilingual({
+                l1: "You are in a narrow tunnel going east and west.",
+                l2: "Tha thu ann an tunail caol a' dol dhan ear agus dhan iar."
+            }),
+        ]),
+        [],
+        [],
+    );
+    joinRooms(cavern.room, tunnelEW.room, directionEast, directionWest);
+
+    let tomb = buildRoom(
+        {l1: 'Tomb', l2: "Tuama"},
+        StoryElement.paragraph([
+            ParagraphElement.bilingual({
+                l1: "You are in a tomb.",
+                l2: "Tha thu ann an tuama."
+            }),
+            ParagraphElement.bilingual({
+                l1: "There is a sarcophagus in the middle of the room.",
+                l2: "Tha ciste-laighe cloiche ann am meadhan an t-seòmair."
+            }),
+        ]),
+        [generateSkeleton(), generateBigRat()],
+        [],
+    );
+    joinRooms(tunnelEW.room, tomb.room, directionEast, directionWest);
+
+    let antechamber = buildRoom(
+        {l1: 'Antechamber', l2: 'Seòmar-Toisich'},
+        StoryElement.paragraph([
+            ParagraphElement.bilingual({
+                l1: "You are in an antechamber.",
+                l2: "Tha thu ann an seòmar-toisich."
+            }),
+            ParagraphElement.bilingual({
+                l1: "There are columns and carved stone.",
+                l2: " Tha colbhan agus clach shnaidhte ann."
+            }),
+        ]),
+        [generateBigRat()],
+        [generateFancyDagger()],
+    );
+    joinRooms(tomb.room, antechamber.room, directionSouth, directionNorth);
 
     let player: Character = {
         id: genId(),
         name: PRONOUN_YOU_SINGULAR,
         items: [],
-        maxHealth: 1,
+        maxHealth: 4,
         currentHealth: 1,
     };
 
     return buildGameState(
         player,
-        startingRoom.room,
-        [startingRoom, tunnel],
+        caveEntrance.room,
+        [caveEntrance, tunnelNS, cavern, tunnelEW, tomb, antechamber],
     );
 }
 
@@ -152,10 +222,10 @@ function generateSpider(): Character {
     }
 }
 
-function generateRat(): Character {
+function generateBigRat(): Character {
     return {
         id: genId(),
-        name: NOUN_RAT,
+        name: NOUN_BIG_RAT,
         items: [],
         maxHealth: 1,
         currentHealth: 1,
@@ -166,6 +236,13 @@ function generateSword(): Item {
     return {
         id: genId(),
         name: NOUN_SWORD,
+    };
+}
+
+function generateFancyDagger(): Item {
+    return {
+        id: genId(),
+        name: NOUN_FANCY_DAGGER,
     };
 }
 

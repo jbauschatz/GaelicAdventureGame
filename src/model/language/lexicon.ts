@@ -30,20 +30,20 @@ export const NOUN_BIG_SPIDER = {
         definite: 'the big spider'
     },
     gaelic: {
-        indefinite: 'damhan mòr',
-        definite: 'an damhan mòr',
+        indefinite: 'damhan-allaidh mòr',
+        definite: 'an damhan-allaidh mòr',
     },
 };
 
-export const NOUN_RAT = {
+export const NOUN_BIG_RAT = {
     english: {
-        base: 'rat',
-        indefinite: 'a rat',
-        definite: 'the rat'
+        base: 'big rat',
+        indefinite: 'a big rat',
+        definite: 'the big rat'
     },
     gaelic: {
-        indefinite: 'radan',
-        definite: 'an radan',
+        indefinite: 'radan mòr',
+        definite: 'an radan mòr',
     },
 };
 
@@ -59,6 +59,17 @@ export const NOUN_SWORD = {
     },
 };
 
+export const NOUN_FANCY_DAGGER = {
+    english: {
+        base: 'gilded dagger',
+        indefinite: 'a gilded dagger',
+        definite: 'the gilded dagger'
+    },
+    gaelic: {
+        indefinite: 'biodag òrail',
+        definite: "a' bhiodag òrail",
+    },
+};
 
 export const NOUN_KEY = {
     english: {

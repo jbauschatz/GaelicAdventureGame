@@ -4,7 +4,7 @@ import { ParagraphElement, Story, StoryElement, ref } from "../model/bilingual-s
 import { Narrator } from "./narrator";
 import { GameState } from "../model/game/game-state";
 import { Room } from "../model/game/room";
-import { buildOxfordCommaList } from "../model/bilingual-story/story-util";
+import { CONJUNCTION_OR, buildOxfordCommaList } from "../model/bilingual-story/story-util";
 import { REGISTERED_COMMAND_PARSERS } from "../command/parser/command-parser";
 
 export const GAELIC_ENGLISH_NARRATOR: Narrator = {
@@ -44,7 +44,9 @@ export function narrateRoom(gameState: GameState): Story {
     story.push(describeExits(room));
 
     // Occupants
-    story.push(describeCharacters(room, gameState));
+    if (room.characters.length > 0) {
+        story.push(describeCharacters(room, gameState));
+    }
     
     return story;
 }
@@ -99,7 +101,7 @@ function describeExits(room: Room): StoryElement<'paragraph'> {
 
     return StoryElement.paragraph([
         ParagraphElement.bilingual({l1: "You can go:", l2: "Faodaidh sibh a dhol:" }),
-        ...buildOxfordCommaList(exits)
+        ...buildOxfordCommaList(exits, CONJUNCTION_OR)
     ]);
 }
 
