@@ -1,5 +1,6 @@
 import { GameEvent } from "../../event/game-event";
 import { GameState } from "../../model/game/game-state";
+import { getLivingEnemies } from "../../model/game/game-state-util";
 import { GameCommand } from "../game-command";
 import { CommandParser } from "./command";
 import { findCharactersByName } from "./parser-helpers";
@@ -19,10 +20,11 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
             });
         }
 
-        let enemies = findCharactersByName(restOfCommand, gameState.currentRoom, gameState);
+        let validEnemies = getLivingEnemies(gameState.player, gameState.currentRoom, gameState);
+        let identifiedEnemies = findCharactersByName(restOfCommand, validEnemies);
 
         // Validate the enemy name
-        if (enemies.length === 0) {
+        if (identifiedEnemies.length === 0) {
             return GameEvent.commandValidation({
                 message: {
                     l1: `There is no enemy here called "${restOfCommand}".`,
@@ -31,17 +33,14 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
             });
         }
 
-        let enemy = enemies[0];
+        let enemy = identifiedEnemies[0];
         return GameCommand.attack({
             attacker: gameState.player,
-            defender: enemy,
+            defender: enemy.id,
         });
     },
     getValidCommands: (gameState: GameState) => {
-        let playerRoom = gameState.rooms[gameState.currentRoom];
-        let enemies = playerRoom.characters
-                .filter(character => character !== gameState.player)
-                .map(character => gameState.characters[character]);
+        let enemies = getLivingEnemies(gameState.player, gameState.currentRoom, gameState);
         return {
             l1: enemies.map(enemy => 'fight ' + enemy.name.english.definite),
             l2: enemies.map(enemy => 'sabaidich ' + enemy.name.gaelic.definite),

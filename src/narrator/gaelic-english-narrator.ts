@@ -6,6 +6,8 @@ import { GameState } from "../model/game/game-state";
 import { Room } from "../model/game/room";
 import { CONJUNCTION_OR, buildOxfordCommaList } from "../model/bilingual-story/story-util";
 import { REGISTERED_COMMAND_PARSERS } from "../command/parser/command-parser";
+import { getLivingEnemies } from "../model/game/game-state-util";
+import { Character } from "../model/game/character";
 
 export const GAELIC_ENGLISH_NARRATOR: Narrator = {
     narrateEvent: (event: GameEvent, gameStateBefore: GameState, gameStateAfter: GameState) => {
@@ -43,31 +45,30 @@ export function narrateRoom(gameState: GameState): Story {
     // Exits
     story.push(describeExits(room));
 
-    // Occupants
-    if (room.characters.length > 0) {
-        story.push(describeCharacters(room, gameState));
+    // Enemies
+    let enemies = getLivingEnemies(gameState.player, room.id, gameState);
+    if (enemies.length > 0) {
+        story.push(describeCharacters(enemies));
     }
     
     return story;
 }
 
-function describeCharacters(room: Room, gameState: GameState): StoryElement<'paragraph'> {
-    let otherCharactersInRoom = room.characters
-        .filter(character => character !== gameState.player)
-        .map(characterId => {
-            let character = gameState.characters[characterId]
+function describeCharacters(enemies: Array<Character>): StoryElement<'paragraph'> {
+    let enemiesWithNames = enemies
+        .map(enemy => {
             return {
-                entity: character,
+                entity: enemy,
                 name: {
-                    l1: character.name.english.indefinite,
-                    l2: character.name.gaelic.indefinite,
+                    l1: enemy.name.english.indefinite,
+                    l2: enemy.name.gaelic.indefinite,
                 }
             };
         });
 
     return StoryElement.paragraph([
         ParagraphElement.bilingual({l1: "You see:", l2: "Chì thu:"}),
-        ...buildOxfordCommaList(otherCharactersInRoom)
+        ...buildOxfordCommaList(enemiesWithNames)
     ]);
 }
 

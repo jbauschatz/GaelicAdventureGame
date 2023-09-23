@@ -124,7 +124,7 @@ export function newGame(): GameState {
         name: PRONOUN_YOU_SINGULAR,
         items: [],
         maxHealth: 4,
-        currentHealth: 1,
+        currentHealth: 4,
     };
 
     return buildGameState(

@@ -1,14 +1,14 @@
-import { flatMap } from "lodash";
+
+import { Character } from "../../model/game/character";
 import { GameState } from "../../model/game/game-state";
 
 /**
- * Finds all {@link Character}s in the given {@link Room} of the {@link GameState} with names matching the given input (in either language)
+ * Finds all {@link Character}s in the given array with names matching the given input (in either language)
  */
-export function findCharactersByName(input: string, roomId: string, gameState: GameState): Array<string> {
-    return gameState.rooms[roomId]
-        .characters
+export function findCharactersByName(input: string, characters: Array<Character>): Array<Character> {
+    return characters
         .filter(character => {
-            let characterName = gameState.characters[character].name;
+            let characterName = character.name;
             let validNames = [
                 characterName.english.base,
                 characterName.english.definite,
