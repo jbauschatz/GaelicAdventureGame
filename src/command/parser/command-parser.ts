@@ -9,6 +9,7 @@ import { GO_COMMAND_PARSER } from "./go-command-parser";
 import { TAKE_COMMAND_PARSER } from "./take-command-parser";
 import { CommandParser } from "./command";
 import { ATTACK_COMMAND_PARSER } from "./attack-command-parser";
+import { CommandPreview } from "./command-preview";
 
 /**
  * Parsers for all commands which the player can execute
@@ -21,6 +22,28 @@ export const REGISTERED_COMMAND_PARSERS: Array<CommandParser> = [
     TAKE_COMMAND_PARSER,
     ATTACK_COMMAND_PARSER,
 ];
+
+/**
+ * 
+ */
+export function getCommandPreviews(gameState: GameState): {
+    l1: Array<CommandPreview>,
+    l2: Array<CommandPreview>,
+ } {
+    let l1Previews = Array<CommandPreview>();
+    let l2Previews = Array<CommandPreview>();
+    
+    REGISTERED_COMMAND_PARSERS.forEach(parser => {
+        let previews = parser.getCommandPreviews(gameState);
+        l1Previews = [...l1Previews, ...previews.l1];
+        l2Previews = [...l2Previews, ...previews.l2];
+    });
+
+    return {
+        l1: l1Previews,
+        l2: l2Previews,
+    };
+}
 
 /**
  * Produces a list of strings representing every possible well-formed and legal command

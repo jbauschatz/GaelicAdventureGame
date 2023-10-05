@@ -1,0 +1,15 @@
+
+.command-word-button {
+    margin: 10px;
+}
+
+#command-preview-area {
+    background-color: white;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+  
+#command-word-area {
+    background-color: lightgray;
+}
+  
