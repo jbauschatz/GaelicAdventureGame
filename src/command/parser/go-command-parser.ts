@@ -6,6 +6,52 @@ import { CommandParser } from "./command";
 export const GO_COMMAND_PARSER: CommandParser = {
     l1: 'go',
     l2: 'rach',
+    getCommandPreviews: (gameState: GameState) => {
+        let exits = gameState.rooms[gameState.currentRoom].exits;
+
+        return {
+            l1: [{
+                prompt: "go...",
+                previewText: "go __________",
+                enabled: true,
+                isComplete: false,
+                followUpPreviews: exits.map(exit => ({
+                    prompt: exit.direction.l1,
+                    previewText: "go " + exit.direction.l1,
+                    enabled: true,
+                    isComplete: true,
+                    followUpPreviews: [],
+                    command: GameCommand.move({
+                        actor: gameState.player,
+                        fromRoom: gameState.currentRoom,
+                        toDirection: exit.direction,
+                        toRoom: exit.room,
+                    }),
+                })),
+                command: undefined,
+            }],
+            l2: [{
+                prompt: "rach...",
+                previewText: "rach __________",
+                enabled: true,
+                isComplete: false,
+                followUpPreviews: exits.map(exit => ({
+                    prompt: exit.direction.l2,
+                    previewText: "rach " + exit.direction.l2,
+                    enabled: true,
+                    isComplete: true,
+                    followUpPreviews: [],
+                    command: GameCommand.move({
+                        actor: gameState.player,
+                        fromRoom: gameState.currentRoom,
+                        toDirection: exit.direction,
+                        toRoom: exit.room,
+                    }),
+                })),
+                command: undefined,
+            }]
+        };
+    },
     helpText: {l1: 'Go in a direction', l2: 'Rach ann an rathad'},
     parse: (rest: string, gameState: GameState) => {
         // Validate that a full command was received

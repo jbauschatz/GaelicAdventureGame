@@ -6,12 +6,12 @@ export function TextView({text}: {text: StoryText}) {
             text
         }
         {Array.isArray(text) && 
-            text.map((t: string | EntityReference) => {
+            text.map((t: string | EntityReference, index) => {
                 if (typeof t === 'string') {
                     return t;
                 } else {
                     let entityRef = t as EntityReference;
-                    return <strong>{entityRef.text}</strong>;
+                    return <strong key={index}>{entityRef.text}</strong>;
                 }
             })
         }

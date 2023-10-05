@@ -1,12 +1,12 @@
 import { Button, Col, Form, Row } from "react-bootstrap";
-import { ToggleInlineTranslation } from "./story/toggle-translate";
+import { ToggleInlineTranslation } from "../story/toggle-translate";
 import { Controller, useForm } from "react-hook-form";
 import { Typeahead } from "react-bootstrap-typeahead";
 import { useMemo } from "react";
-import { getValidCommandInputs } from "../../command/parser/command-parser";
-import { GLOBAL_HELP_PROMPT } from "../../App";
-import { GameState } from "../../model/game/game-state";
-import { ParagraphElement, StoryElement } from "../../model/bilingual-story/story";
+import { getValidCommandInputs } from "../../../command/parser/command-parser";
+import { GLOBAL_HELP_PROMPT } from "../../../App";
+import { GameState } from "../../../model/game/game-state";
+import { ParagraphElement, StoryElement } from "../../../model/bilingual-story/story";
 
 type CommandInputProperties = {
     gameState: GameState,
