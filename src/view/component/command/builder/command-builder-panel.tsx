@@ -58,19 +58,32 @@ export function CommandBuilderPanel({gameState, onEnterCommand}: CommandBuilderP
                 <CommandPreviewText commandBuilder={selectedPreview}/>
                 {selectedPreview && <>
                     {' '}
-                    <Button variant="secondary" onClick={() => clearSelection()}>
+                    <Button 
+                            className="command-preview-action-button"
+                            variant="outline-secondary"
+                            onClick={() => clearSelection()}
+                    >
                         <FontAwesomeIcon icon={faCircleXmark} />
                     </Button>
-                    {selectedPreview.isComplete && <Button variant="primary" onClick={() => executeCommand()}>
-                        <FontAwesomeIcon icon={faCheckCircle} />
-                    </Button>}
+                    {selectedPreview.isComplete && 
+                        <Button 
+                                className="command-preview-action-button"
+                                variant="outline-primary" 
+                                onClick={() => executeCommand()}>
+                            <FontAwesomeIcon icon={faCheckCircle} />
+                        </Button>
+                    }
                 </>}
             </div>
         </div>
 
         <div id="command-word-area">
-            {availableCommandPreviews.map(builder => {
-                return <CommandWordButton builder={builder} onSelect={onSelectCommandPreview}/>
+            {availableCommandPreviews.map((builder, index) => {
+                return <CommandWordButton
+                        key={"command-word-" + index}
+                        builder={builder} 
+                        onSelect={onSelectCommandPreview}
+                />
             })}
         </div>
 

@@ -7,7 +7,7 @@ export type CommandWordButtonProperties = {
 }
 
 export function CommandWordButton({builder, onSelect}: CommandWordButtonProperties) {
-    return <Button 
+    return <Button
             className="command-word-button"
             disabled={!builder.enabled}
             onClick={() => onSelect(builder)}
