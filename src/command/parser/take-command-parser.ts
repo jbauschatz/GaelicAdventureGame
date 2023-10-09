@@ -12,15 +12,19 @@ export const TAKE_COMMAND_PARSER: CommandParser = {
         let items = room.items.map(itemId => gameState.items[itemId]);
         let enabled = items.length > 0;
 
-        return {
-            l1: [{
-                prompt: "take...",
-                previewText: "take __________",
+        return [
+            {
+                l1Prompt: "take...",
+                l2Prompt: "gabh...",
+                l1PreviewText: "take __________",
+                l2PreviewText: "gabh __________",
                 enabled: enabled,
                 isComplete: false,
                 followUpPreviews: items.map(item => ({
-                    prompt: item.name.english.definite,
-                    previewText: "take " + item.name.english.definite,
+                    l1Prompt: item.name.english.definite,
+                    l2Prompt: item.name.gaelic.definite,
+                    l1PreviewText: "take " + item.name.english.definite,
+                    l2PreviewText: "gabh " + item.name.gaelic.definite,
                     enabled: true,
                     isComplete: true,
                     followUpPreviews: [],
@@ -30,26 +34,8 @@ export const TAKE_COMMAND_PARSER: CommandParser = {
                     }),
                 })),
                 command: undefined,
-            }],
-            l2: [{
-                prompt: "gabh...",
-                previewText: "gabh __________",
-                enabled: enabled,
-                isComplete: false,
-                followUpPreviews: items.map(item => ({
-                    prompt: item.name.gaelic.definite,
-                    previewText: "gabh " + item.name.gaelic.definite,
-                    enabled: true,
-                    isComplete: true,
-                    followUpPreviews: [],
-                    command: GameEvent.takeItem({
-                        actor: gameState.player,
-                        item: item.id,
-                    }),
-                })),
-                command: undefined,
-            }],
-        };
+            },
+        ];
     },
     helpText: {l1: 'Take something', l2: 'Gabh rudeigin'},
     parse: (rest: string, gameState: GameState): GameCommand | GameEvent<'commandValidation'> => {

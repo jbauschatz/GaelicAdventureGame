@@ -11,14 +11,18 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
     getCommandPreviews: (gameState: GameState) => {
         let validEnemies = getLivingEnemies(gameState.player, gameState.currentRoom, gameState);
         let enabled = validEnemies.length > 0;
-        return {
-            l1:[{
-                prompt: "fight...",
-                previewText: "fight __________",
+        return [
+            {
+                l1Prompt: "fight...",
+                l2Prompt: "sabaidich...",
+                l1PreviewText: "fight __________",
+                l2PreviewText: "sabaidich __________",
                 enabled: enabled,
                 followUpPreviews: validEnemies.map(enemy => ({
-                    prompt: enemy.name.english.definite,
-                    previewText: "fight " + enemy.name.english.definite,
+                    l1Prompt: enemy.name.english.definite,
+                    l2Prompt: enemy.name.gaelic.definite,
+                    l1PreviewText: "fight " + enemy.name.english.definite,
+                    l2PreviewText: "sabaidich " + enemy.name.gaelic.definite,
                     enabled: true,
                     followUpPreviews: [],
                     isComplete: true,
@@ -29,26 +33,8 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
                 })),
                 isComplete: false,
                 command: undefined,
-            }],
-            l2:[{
-                prompt: "sabaidich...",
-                previewText: "sabaidich __________",
-                enabled: enabled,
-                followUpPreviews: validEnemies.map(enemy => ({
-                    prompt: enemy.name.gaelic.definite,
-                    previewText: "sabaidich " + enemy.name.gaelic.definite,
-                    enabled: true,
-                    followUpPreviews: [],
-                    isComplete: true,
-                    command: GameCommand.attack({
-                        attacker: gameState.player,
-                        defender: enemy.id,
-                    }),
-                })),
-                isComplete: false,
-                command: undefined,
-            }],
-        };
+            },
+        ]
     },
     helpText: {l1: 'Fight against an enemy', l2: 'Sabaid an aghaidh nàmhaid'},
     parse: (restOfCommand: string, gameState: GameState) => {

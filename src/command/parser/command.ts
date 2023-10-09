@@ -18,10 +18,11 @@ export type CommandParser = {
      */
     l2: string,
 
-    getCommandPreviews: (gameState: GameState) => {
-        l1: Array<CommandPreview>,
-        l2: Array<CommandPreview>,
-    }
+    /**
+     * Gets all possible {@link CommandPreview}s from the current {@link GameState},
+     * representing possible legal {@link GameCommand}s that could be input.
+     */
+    getCommandPreviews: (gameState: GameState) => Array<CommandPreview>,
 
     /**
      * Text that is displayed to explain this command to the user

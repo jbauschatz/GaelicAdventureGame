@@ -9,15 +9,19 @@ export const GO_COMMAND_PARSER: CommandParser = {
     getCommandPreviews: (gameState: GameState) => {
         let exits = gameState.rooms[gameState.currentRoom].exits;
 
-        return {
-            l1: [{
-                prompt: "go...",
-                previewText: "go __________",
+        return [
+            {
+                l1Prompt: "go...",
+                l2Prompt: "rach...",
+                l1PreviewText: "go __________",
+                l2PreviewText: "rach __________",
                 enabled: true,
                 isComplete: false,
                 followUpPreviews: exits.map(exit => ({
-                    prompt: exit.direction.l1,
-                    previewText: "go " + exit.direction.l1,
+                    l1Prompt: exit.direction.l1,
+                    l2Prompt: exit.direction.l2,
+                    l1PreviewText: "go " + exit.direction.l1,
+                    l2PreviewText: "rach " + exit.direction.l2,
                     enabled: true,
                     isComplete: true,
                     followUpPreviews: [],
@@ -29,28 +33,8 @@ export const GO_COMMAND_PARSER: CommandParser = {
                     }),
                 })),
                 command: undefined,
-            }],
-            l2: [{
-                prompt: "rach...",
-                previewText: "rach __________",
-                enabled: true,
-                isComplete: false,
-                followUpPreviews: exits.map(exit => ({
-                    prompt: exit.direction.l2,
-                    previewText: "rach " + exit.direction.l2,
-                    enabled: true,
-                    isComplete: true,
-                    followUpPreviews: [],
-                    command: GameCommand.move({
-                        actor: gameState.player,
-                        fromRoom: gameState.currentRoom,
-                        toDirection: exit.direction,
-                        toRoom: exit.room,
-                    }),
-                })),
-                command: undefined,
-            }]
-        };
+            },
+        ]
     },
     helpText: {l1: 'Go in a direction', l2: 'Rach ann an rathad'},
     parse: (rest: string, gameState: GameState) => {

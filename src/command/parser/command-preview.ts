@@ -10,14 +10,26 @@ export type CommandPreview = {
    /**
     * Text that can be displayed to the user to select or build this preview
     */
-   prompt: string,
+   l1Prompt: string,
+
+   /**
+    * Text that can be displayed to the user to select or build this preview
+    */
+   l2Prompt: string,
 
    /**
     * The full text to display representing the {@link GameCommand} being previewed
     * 
     * This may include blanks if the {@link GameCommand} is still incomplte, for example "go _____"
     */
-   previewText: string,
+   l1PreviewText: string,
+
+   /**
+    * The full text to display representing the {@link GameCommand} being previewed
+    * 
+    * This may include blanks if the {@link GameCommand} is still incomplte, for example "go _____"
+    */
+   l2PreviewText: string,
 
    /**
     * If the preview is not enabled it means that no valid {@link GameCommand} could be executed based on this preview

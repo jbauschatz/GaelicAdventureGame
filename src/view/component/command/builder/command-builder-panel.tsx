@@ -15,7 +15,7 @@ type CommandBuilderProperties = {
     onEnterCommand: (command: GameCommand, input: string) => void;
 }
 
-type CommandEntryMode = 'l1' | 'l2';
+export type CommandEntryMode = 'l2' | 'combined';
 
 export function CommandBuilderPanel({gameState, onEnterCommand}: CommandBuilderProperties) {
     let [commandMode, setCommandMode] = useState('l2' as CommandEntryMode);
@@ -24,15 +24,12 @@ export function CommandBuilderPanel({gameState, onEnterCommand}: CommandBuilderP
 
     let initialCommandPreviews = useMemo(
         () => {
-            let previewsBothLanguages = getCommandPreviews(gameState);
-            let previews = commandMode === 'l1' 
-                ? previewsBothLanguages.l1
-                : previewsBothLanguages.l2
+            let previews = getCommandPreviews(gameState);
             setAvailableCommandPreviews(previews);
 
             return previews;
         },
-        [gameState, commandMode]
+        [gameState]
     );
 
     let onSelectCommandPreview = (commandBuilder: CommandPreview) => {
@@ -49,13 +46,15 @@ export function CommandBuilderPanel({gameState, onEnterCommand}: CommandBuilderP
         let selection = selectedPreview!;
         setSelectedPreview(undefined);
         setAvailableCommandPreviews(initialCommandPreviews);
-        onEnterCommand(selection.command!, selection.previewText);
+
+        // Execute the command as though it was input in L2
+        onEnterCommand(selection.command!, selection.l2PreviewText);
     }
 
     return <>
         <div id="command-preview-area">
             <div>
-                <CommandPreviewText commandBuilder={selectedPreview}/>
+                <CommandPreviewText commandBuilder={selectedPreview} commandEntryMode={commandMode}/>
                 {selectedPreview && <>
                     {' '}
                     <Button 
@@ -83,6 +82,7 @@ export function CommandBuilderPanel({gameState, onEnterCommand}: CommandBuilderP
                         key={"command-word-" + index}
                         builder={builder} 
                         onSelect={onSelectCommandPreview}
+                        commandEntryMode={commandMode}
                 />
             })}
         </div>
@@ -98,12 +98,12 @@ export function CommandBuilderPanel({gameState, onEnterCommand}: CommandBuilderP
                     GD
                 </ToggleButton>
                 <ToggleButton
-                    id="radio-l1"
+                    id="radio-combined"
                     variant='secondary'
-                    value="l1"
-                    onChange={() => setCommandMode('l1')}
+                    value="combined"
+                    onChange={() => setCommandMode('combined')}
                 >
-                    EN
+                    GD / EN
                 </ToggleButton>
             </ToggleButtonGroup>
         </Navbar>
