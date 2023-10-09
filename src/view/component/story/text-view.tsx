@@ -15,10 +15,8 @@ export function TextView({text}: {text: StoryText}) {
                 } else {
                     let entityRef = t as EntityReference;
                     let entityMetadata: any = entityRef.entity;
-                    console.log("Metadata: ", entityMetadata);
                     
                     if (isOfVariant(entityMetadata, GameEntityMetadata)) {
-                        console.log("Is variant");
                         let className: string = match(entityMetadata, {
                             enemy: constant('entity-enemy'),
                             item: constant('entity-item'),
