@@ -16,6 +16,26 @@
   margin-top: 10px;
 }
 
+.entity-enemy {
+  color: darkred;
+  font-weight: bold;
+}
+
+.entity-item {
+  color: goldenrod;
+  font-weight: bold;
+}
+
+.entity-direction {
+  color: black;
+  font-weight: bold;
+}
+
+.entity-other {
+  color: black;
+  font-weight: bold;
+}
+
 .player-input {
   color: green;
   margin-top: 10px;

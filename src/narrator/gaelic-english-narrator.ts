@@ -8,6 +8,7 @@ import { CONJUNCTION_OR, buildOxfordCommaList } from "../model/bilingual-story/s
 import { REGISTERED_COMMAND_PARSERS } from "../command/parser/command-parser";
 import { getLivingEnemies } from "../model/game/game-state-util";
 import { Character } from "../model/game/character";
+import { GameEntityMetadata } from "./game-entity-metadata";
 
 export const GAELIC_ENGLISH_NARRATOR: Narrator = {
     narrateEvent: (event: GameEvent, gameStateBefore: GameState, gameStateAfter: GameState) => {
@@ -58,7 +59,7 @@ function describeCharacters(enemies: Array<Character>): StoryElement<'paragraph'
     let enemiesWithNames = enemies
         .map(enemy => {
             return {
-                entity: enemy,
+                entity: GameEntityMetadata.enemy(),
                 name: {
                     l1: enemy.name.english.indefinite,
                     l2: enemy.name.gaelic.indefinite,
@@ -77,7 +78,7 @@ function describeItems(room: Room, gameState: GameState): StoryElement<'paragrap
         .map(itemId => {
             let item = gameState.items[itemId]
             return {
-                entity: item,
+                entity: GameEntityMetadata.item(),
                 name: {
                     l1: item.name.english.indefinite,
                     l2: item.name.gaelic.indefinite,
@@ -95,13 +96,13 @@ function describeExits(room: Room): StoryElement<'paragraph'> {
     let exits = room.exits
         .map(exit => {
             return {
-                entity: exit,
+                entity: GameEntityMetadata.direction(),
                 name: exit.direction,
             };
         });
 
     return StoryElement.paragraph([
-        ParagraphElement.bilingual({l1: "You can go:", l2: "Faodaidh sibh a dhol:" }),
+        ParagraphElement.bilingual({l1: "You can go:", l2: "Faodaidh tu a dhol:" }),
         ...buildOxfordCommaList(exits, CONJUNCTION_OR)
     ]);
 }
@@ -127,11 +128,11 @@ function narrateHelp(): Story {
 function narrateInventory(gameState: GameState): Story {
     let player = gameState.characters[gameState.player];
     if (player.items.length > 0) {
-        let palyerItems = player.items
+        let playerItems = player.items
         .map(itemId => {
             let item = gameState.items[itemId]
             return {
-                entity: item,
+                entity: GameEntityMetadata.item(),
                 name: {
                     l1: item.name.english.indefinite,
                     l2: item.name.gaelic.indefinite,
@@ -144,9 +145,9 @@ function narrateInventory(gameState: GameState): Story {
             StoryElement.paragraph([
                 ParagraphElement.bilingual({
                     l1: "You have:",
-                    l2: "Agaibh:"
+                    l2: "Agad:"
                 }),
-                ...buildOxfordCommaList(palyerItems)
+                ...buildOxfordCommaList(playerItems)
             ])
         ];
     } else {
@@ -155,7 +156,7 @@ function narrateInventory(gameState: GameState): Story {
             StoryElement.paragraph([
                 ParagraphElement.bilingual({
                     l1: "You don't have anything.",
-                    l2: "Chan eil dad agaibh."
+                    l2: "Chan eil dad agad."
                 }),
             ])
         ];
@@ -166,7 +167,7 @@ function narrateLook(gameStateAfter: GameState): Story {
     return [
         // Narrate the player looking around
         StoryElement.paragraph([
-            ParagraphElement.bilingual({l1: 'You look around...', l2: 'Seallaidh sibh mun cuairt...'})
+            ParagraphElement.bilingual({l1: 'You look around...', l2: 'Seallaidh tu mun cuairt...'})
         ]),
 
         // Narrate the current Room
@@ -181,8 +182,16 @@ function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story 
         // Narrate the movement to the new room
         StoryElement.paragraph([
             ParagraphElement.bilingual({
-                l1: `You go ${toDirection.l1}...`,
-                l2: `Thèid sibh ${toDirection.l2}...`
+                l1: [
+                    'You go ',
+                    ref(GameEntityMetadata.direction(), toDirection.l1),
+                    '...'
+                ],
+                l2: [
+                    'Thèid thu ',
+                    ref(GameEntityMetadata.direction(), toDirection.l2),
+                    '...'
+                ],
             })
         ]),
 
@@ -198,8 +207,16 @@ function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState):
     return [
         StoryElement.paragraph([
             ParagraphElement.bilingual({
-                l1: ['You take ', ref(item, itemName.english.definite), '.'],
-                l2: ['Gabhaidh tu ', ref(item, itemName.gaelic.definite), '.'],
+                l1: [
+                    'You take ',
+                    ref(GameEntityMetadata.item(), itemName.english.definite),
+                    '.'
+                ],
+                l2: [
+                    'Gabhaidh tu ',
+                    ref(GameEntityMetadata.item(), itemName.gaelic.definite),
+                    '.'
+                ],
             })
         ])
     ];
@@ -212,8 +229,16 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
 
         let attackParagraphElements = [
             ParagraphElement.bilingual({
-                l1: ['You attack ', ref(defender, defender.name.english.definite), '!'],
-                l2: ['Sabaidichidh tu ', ref(defender, defender.name.gaelic.definite), '!'],
+                l1: [
+                    'You attack ',
+                    ref(GameEntityMetadata.enemy(), defender.name.english.definite),
+                    '!'
+                ],
+                l2: [
+                    'Sabaidichidh tu ',
+                    ref(GameEntityMetadata.enemy(), defender.name.gaelic.definite),
+                    '!'
+                ],
             })
         ];
         if (attack.isFatal) {
@@ -233,8 +258,15 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
     let attacker = gameState.characters[attack.attacker];
     let attackParagraphElements = [
         ParagraphElement.bilingual({
-            l1: [ref(attacker, attacker.name.english.definite), ' attacks you!'],
-            l2: ['Sabaidichidh ', ref(attacker, attacker.name.gaelic.definite), ' thu!'],
+            l1: [
+                ref(GameEntityMetadata.enemy(), attacker.name.english.definite),
+                ' attacks you!'
+            ],
+            l2: [
+                'Sabaidichidh ',
+                ref(GameEntityMetadata.enemy(), attacker.name.gaelic.definite),
+                ' thu!'
+            ],
         })
     ];
     if (attack.isFatal) {
