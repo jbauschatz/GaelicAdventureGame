@@ -6,6 +6,10 @@ import { Item } from "../model/game/item";
 import { Room } from "../model/game/room";
 import { genId } from "./id";
 import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER } from "../model/language/lexicon";
+import { Trigger } from "../model/game/trigger";
+import { GameEvent } from "../event/game-event";
+import { GameCommand } from "../command/game-command";
+import { Exit } from "../model/game/exit";
 
 const directionNorth = {l1: 'north', l2: 'gu tuath'};
 const directionSouth = {l1: 'south', l2: 'gu deas'};
@@ -102,6 +106,7 @@ export function newGame(): GameState {
     );
     joinRooms(tunnelEW.room, tomb.room, directionEast, directionWest);
 
+    let gildedDagger = generateFancyDagger();
     let antechamber = buildRoom(
         {l1: 'Antechamber', l2: 'Seòmar-Toisich'},
         StoryElement.paragraph([
@@ -115,13 +120,34 @@ export function newGame(): GameState {
             }),
         ]),
         [generateBigRat()],
-        [generateFancyDagger()],
+        [gildedDagger],
     );
-    joinRooms(tomb.room, antechamber.room, directionSouth, directionNorth);
+    let {going} = joinRooms(tomb.room, antechamber.room, directionSouth, directionNorth);
+
+    // Trap the entrance from Tomb to Antechamber
+    tomb.room.triggers.push(Trigger.move({
+        exit: going.id,
+        buildCommand: (triggeringCharacter: string | undefined, _) => GameCommand.trapDamage({
+            defender: triggeringCharacter!!,
+            damage: 1,
+        }),
+    }))
+
+    // Trap the gilden dagger in the antechamber
+    antechamber.room.triggers.push(
+        Trigger.takeItem({
+            item: gildedDagger.id,
+            buildCommand: (triggeringCharacter: string | undefined, _) => GameCommand.trapDamage({
+                defender: triggeringCharacter!!,
+                damage: 1,
+            }),
+        }),
+    );
 
     let player: Character = {
         id: genId(),
         name: PRONOUN_YOU_SINGULAR,
+        room: caveEntrance.room.id,
         items: [],
         maxHealth: 4,
         currentHealth: 4,
@@ -177,35 +203,55 @@ function buildRoom(
     characters: Array<Character>,
     items: Array<Item>,
 ): RoomWithResources {
+    let roomId = genId()
+
     return {
         room: {
-            id: genId(),
+            id: roomId,
             name,
             description,
             characters: characters.map(character => character.id),
             items: items.map(item => item.id),
             exits: [],
+            triggers: [],
         },
-        characters,
+        characters: characters.map(character => ({
+            ...character,
+            room: roomId,
+        })),
         items,
     }
 }
 
-function joinRooms(room1: Room, room2: Room, direction: BilingualText, returnDirection: BilingualText) {
-    room1.exits.push({
+function joinRooms(room1: Room, room2: Room, direction: BilingualText, returnDirection: BilingualText): {
+    going: Exit,
+    coming: Exit,
+} {
+    let going = {
+        id: genId(),
         direction: direction,
-        room: room2.id
-    });
-    room2.exits.push({
+        room: room2.id,
+    };
+    room1.exits.push(going);
+
+    let coming = {
+        id: genId(),
         direction: returnDirection,
-        room: room1.id
-    });
+        room: room1.id,
+    };
+    room2.exits.push(coming);
+
+    return {
+        going,
+        coming,
+    }
 }
 
 function generateSkeleton(): Character {
     return {
         id: genId(),
         name: NOUN_SKELETON,
+        room: '',
         items: [],
         maxHealth: 2,
         currentHealth: 2,
@@ -216,6 +262,7 @@ function generateSpider(): Character {
     return {
         id: genId(),
         name: NOUN_BIG_SPIDER,
+        room: '',
         items: [],
         maxHealth: 1,
         currentHealth: 1,
@@ -226,6 +273,7 @@ function generateBigRat(): Character {
     return {
         id: genId(),
         name: NOUN_BIG_RAT,
+        room: '',
         items: [],
         maxHealth: 1,
         currentHealth: 1,

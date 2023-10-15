@@ -1,5 +1,6 @@
 import { TypeNames, VariantOf, fields, variant } from "variant";
 import { BilingualText } from "../model/bilingual-text";
+import { Story } from "../model/bilingual-story/story";
 
 export const GameCommand = variant({
     /**
@@ -55,6 +56,28 @@ export const GameCommand = variant({
          * The Character being attacked
          */
         defender: string,
+    }>(),
+
+    /**
+     * A trap deals damage to the given Character
+     */
+    trapDamage: fields<{
+        /**
+         * The Character being damaged
+         */
+        defender: string,
+
+        /**
+         * The amount of damage dealt
+         */
+        damage: number,
+    }>(),
+
+    /**
+     * The given {@link Story} should be narrated to the user
+     */
+    narrate: fields<{
+        story: Story,
     }>(),
 
     /**

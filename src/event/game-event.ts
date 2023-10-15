@@ -1,6 +1,7 @@
 
 import {variant, fields, VariantOf, TypeNames} from 'variant';
 import { BilingualText } from '../model/bilingual-text';
+import { Story } from '../model/bilingual-story/story';
 
 export const GameEvent = variant({
     /**
@@ -33,6 +34,11 @@ export const GameEvent = variant({
          * Direction the Character is moving as they exit the fromRoom
          */
         toDirection: BilingualText,
+
+        /**
+         * The Exit the Character took as they exit the fromRoom
+         */
+        exit: string,
     }>(),
 
     /**
@@ -71,14 +77,38 @@ export const GameEvent = variant({
     }>(),
 
     /**
-     * 
+     * A trap deals damage to the given Character
+     */
+    trapDamage: fields<{
+        /**
+         * The Character being damaged
+         */
+        defender: string,
+
+        /**
+         * Whether the trap killed the defender
+         */
+        isFatal: boolean,
+    }>(),
+
+    /**
+     * The given {@link Story} should be narrated to the user
+     */
+    narration: fields<{
+        story: Story
+    }>(),
+
+    /**
+     * Indicates that the game is over
      */
     gameOver: {},
 
     /**
      * Indicates the Player looks at their current Room
      */
-    look: {},
+    look: fields<{
+        isPlayerInitiated: boolean
+    }>(),
 
     /**
      * Indicates the Player lists their Inventory

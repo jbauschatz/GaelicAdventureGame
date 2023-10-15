@@ -16,10 +16,12 @@ export const GAELIC_ENGLISH_NARRATOR: Narrator = {
             commandValidation: commandValidation => narrateCommandValidation(commandValidation),
             help: () => narrateHelp(),
             inventory: () => narrateInventory(gameStateAfter),
-            look: () => narrateLook(gameStateAfter),
+            look: look => narrateLook(look, gameStateAfter),
             move: moveEvent => narrateMove(moveEvent, gameStateAfter),
             takeItem: takeItem => narrateTakeItem(takeItem, gameStateAfter),
             attack: attack => narrateAttack(attack, gameStateAfter),
+            trapDamage: trapDamage => narrateTrapDamage(trapDamage, gameStateAfter),
+            narration: narration => narrateNarration(narration),
             gameOver: () => narrateGameOver(),
         });
     }
@@ -163,12 +165,20 @@ function narrateInventory(gameState: GameState): Story {
     }
 }
 
-function narrateLook(gameStateAfter: GameState): Story {
-    return [
+function narrateLook(look: GameEvent<'look'>, gameStateAfter: GameState): Story {
+    let lookStory = [];
+
+    if (look.isPlayerInitiated) {
         // Narrate the player looking around
-        StoryElement.paragraph([
-            ParagraphElement.bilingual({l1: 'You look around...', l2: 'Seallaidh tu mun cuairt...'})
-        ]),
+        lookStory.push(
+            StoryElement.paragraph([
+                ParagraphElement.bilingual({l1: 'You look around...', l2: 'Seallaidh tu mun cuairt...'})
+            ]),
+        );
+    }
+
+    return [
+        ...lookStory,
 
         // Narrate the current Room
         ...narrateRoom(gameStateAfter)
@@ -194,9 +204,6 @@ function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story 
                 ],
             })
         ]),
-
-        // Narrate the new Room
-        ...narrateRoom(gameStateAfter)
     ];
 }
 
@@ -273,13 +280,38 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
         attackParagraphElements.push(
             ParagraphElement.bilingual({
                 l1: `You die!`,
-                l2: `Dìthidh thu!`,
+                l2: `Dìthidh tu!`,
             })
         )
     }
     return [
         StoryElement.paragraph(attackParagraphElements, 'combat')
     ];
+}
+
+function narrateTrapDamage(trapDamage: GameEvent<'trapDamage'>, gameState: GameState): Story{
+    // TODO: don't assume it's the player triggering the trap
+    let attackParagraphElements = [
+        ParagraphElement.bilingual({
+            l1: 'A trap damages you!',
+            l2: 'Nì trap cron ort!',
+        })
+    ];
+    if (trapDamage.isFatal) {
+        attackParagraphElements.push(
+            ParagraphElement.bilingual({
+                l1: `You die!`,
+                l2: `Dìthidh tu!`,
+            })
+        )
+    }
+    return [
+        StoryElement.paragraph(attackParagraphElements, 'combat')
+    ];
+}
+
+function narrateNarration(narration: GameEvent<'narration'>): Story {
+    return narration.story;
 }
 
 function narrateGameOver() {

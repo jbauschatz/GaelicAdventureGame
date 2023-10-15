@@ -1,5 +1,7 @@
 import { BilingualText } from "../bilingual-text"
 import { StoryElement } from "../bilingual-story/story"
+import { Trigger } from "./trigger"
+import { Exit } from "./exit"
 
 /**
  * A Room that exists somewhere in the game's world
@@ -33,5 +35,10 @@ export type Room = {
     /**
      * Possible ways to move from this Room to another Room
      */
-    exits: Array<{direction: BilingualText, room: string}>
+    exits: Array<Exit>,
+
+    /**
+     * 
+     */
+    triggers: Array<Trigger>,
 }

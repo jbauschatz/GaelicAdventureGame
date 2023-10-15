@@ -38,6 +38,11 @@ function App() {
   let [storyState, setStoryState] = useState({story: story} as StoryState);
 
   let onEnterCommand = function(command: GameCommand, commandInput: string) {
+    // Do not allow any commands if the game is over
+    if (gameState.isGameOver === true) {
+      return;
+    }
+
     // Execute the command and determine the new state
     let stateTransition = executeCommand(command, gameState);
 

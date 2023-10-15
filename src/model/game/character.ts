@@ -1,5 +1,4 @@
 
-
 import { BilingualName } from "./name";
 
 /**
@@ -8,6 +7,7 @@ import { BilingualName } from "./name";
 export type Character = {
     id: string,
     name: BilingualName,
+    room: string,
     items: Array<string>,
     maxHealth: number,
     currentHealth: number,
