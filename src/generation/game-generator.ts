@@ -7,7 +7,6 @@ import { Room } from "../model/game/room";
 import { genId } from "./id";
 import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER } from "../model/language/lexicon";
 import { Trigger } from "../model/game/trigger";
-import { GameEvent } from "../event/game-event";
 import { GameCommand } from "../command/game-command";
 import { Exit } from "../model/game/exit";
 
@@ -29,7 +28,6 @@ const directionWest = {l1: 'west', l2: 'gus an iar'};
  * seòmar-toisich - antechamber
  */
 export function newGame(): GameState {
-    
     let caveEntrance = buildRoom(
         {l1: 'Cave Entrance', l2: "Doras Uamha"},
         StoryElement.paragraph([
@@ -116,7 +114,7 @@ export function newGame(): GameState {
             }),
             ParagraphElement.bilingual({
                 l1: "There are columns and carved stone.",
-                l2: " Tha colbhan agus clach shnaidhte ann."
+                l2: "Tha colbhan agus clach shnaidhte ann."
             }),
         ]),
         [generateBigRat()],
@@ -149,8 +147,8 @@ export function newGame(): GameState {
         name: PRONOUN_YOU_SINGULAR,
         room: caveEntrance.room.id,
         items: [],
-        maxHealth: 4,
-        currentHealth: 4,
+        maxHealth: 10,
+        currentHealth: 10,
     };
 
     return buildGameState(
@@ -181,6 +179,9 @@ function buildGameState(
         });
     });
 
+    // Combine characters into an arbitrary turn order
+    let characterTurnOrder = Object.keys(characters);
+
     return {
         isGameOver: false,
         rooms,
@@ -188,6 +189,8 @@ function buildGameState(
         items,
         player: player.id,
         currentRoom: startingRoom.id,
+        characterTurnOrder: characterTurnOrder,
+        characterWithTurn: player.id,
     }
 }
 

@@ -42,4 +42,13 @@ export type GameState = {
      */
     currentRoom: string,
 
+    /**
+     * {@link Character} ids in order they take their turns
+     */
+    characterTurnOrder: Array<string>,
+
+    /**
+     * Id of the {@link Character} whose turn it currently is
+     */
+    characterWithTurn: string,
 }

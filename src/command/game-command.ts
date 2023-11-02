@@ -4,6 +4,16 @@ import { Story } from "../model/bilingual-story/story";
 
 export const GameCommand = variant({
     /**
+     * Indicates a Character waits and does nothing on its turn
+     */
+    wait: fields<{
+        /**
+         * The Character doing the waiting
+         */
+        actor: string
+    }>(),
+
+    /**
      * Indicates a Character moves from one Room to another
      */
     move: fields<{

@@ -1,8 +1,8 @@
-import { constant, isType, match, partial } from "variant"
+import { isType, match } from "variant"
 import { GameEvent } from "../event/game-event"
 import { GameState } from "../model/game/game-state"
 import { GameCommand } from "./game-command"
-import _, { takeRight } from "lodash"
+import _ from "lodash"
 import { Character } from "../model/game/character"
 import { Trigger } from "../model/game/trigger"
 
@@ -13,6 +13,7 @@ export type GameStateTransition = {
 
 export function executeCommand(command: GameCommand, gameState: GameState): GameStateTransition {
     return match(command, {
+        wait: (waitCommand: GameCommand<'wait'>) => executeWaitCommand(waitCommand, gameState),
         move: (moveCommand: GameCommand<'move'>) => executeMoveCommand(moveCommand, gameState),
         takeItem: (takeItem: GameCommand<'takeItem'>) => executeTakeItem(takeItem, gameState),
         attack: (attack: GameCommand<'attack'>) => executeAttack(attack, gameState),
@@ -22,6 +23,43 @@ export function executeCommand(command: GameCommand, gameState: GameState): Game
         help: () => executeHelpCommand(gameState),
         inventory: () => executeInventoryCommand(gameState),
     });
+}
+
+/**
+ * Advances {@link GameState} to the next turn, skipping any deceased {@link Character}
+ */
+function nextTurn(gameState: GameState) {
+    let characterWithTurn = gameState.characterWithTurn;
+    let index = gameState.characterTurnOrder.indexOf(characterWithTurn);
+
+    var lastTurnIndex = index;
+    var nextTurnIndex;
+    let characterWithNextTurn;
+
+    do {
+        if (lastTurnIndex < gameState.characterTurnOrder.length - 1) {
+            nextTurnIndex = lastTurnIndex + 1;
+        } else {
+            nextTurnIndex = 0;
+        }
+        lastTurnIndex = nextTurnIndex;
+        characterWithNextTurn = gameState.characterTurnOrder[nextTurnIndex]
+    } while (
+        gameState.characters[characterWithNextTurn].currentHealth === 0
+                && nextTurnIndex != index
+    );
+
+    return {
+        ...gameState,
+        characterWithTurn: characterWithNextTurn,
+    };
+}
+
+function executeWaitCommand(wait: GameCommand<'wait'>, gameState: GameState): GameStateTransition {
+    return {
+        gameStateAfter: nextTurn(gameState),
+        events: [],
+    }
 }
 
 function executeMoveCommand(move: GameCommand<'move'>, gameState: GameState): GameStateTransition {
@@ -35,14 +73,14 @@ function executeMoveCommand(move: GameCommand<'move'>, gameState: GameState): Ga
         ...player,
         room: newRoom,
     }
-    let gameStateAfter: GameState = {
+    let gameStateAfter: GameState = nextTurn({
         ...gameState,
         characters: {
             ...gameState.characters,
             [gameState.player]: playerAfterMove,
         },
         currentRoom: newRoom,
-    };
+    });
 
     let moveTransition = {
         gameStateAfter,
@@ -99,7 +137,6 @@ function executeTakeItem(takeItem: GameCommand<'takeItem'>, gameState: GameState
 
 function executeAttack(attack: GameCommand<'attack'>, gameState: GameState): GameStateTransition {
     let defender = gameState.characters[attack.defender];
-    let attacker = gameState.characters[attack.attacker];
 
     // Apply damage to the defender
     defender = {
@@ -113,31 +150,14 @@ function executeAttack(attack: GameCommand<'attack'>, gameState: GameState): Gam
     });
     let combatEvents: Array<GameEvent> = [attackEvent];
 
-    // If the defender survives it can counterattack
-    if (defender.currentHealth > 0) {
-        // Apply damange back to the attacker
-        attacker = {
-            ...attacker,
-            currentHealth: Math.max(attacker.currentHealth - 1, 0),
-        }
-        
-        let counterattackEvent = GameEvent.attack({
-            attacker: attack.defender,
-            defender: attack.attacker,
-            isFatal: attacker.currentHealth === 0,
-        });
-        combatEvents.push(counterattackEvent);
-    }
-
     let combatStateTransition = {
-        gameStateAfter: {
+        gameStateAfter: nextTurn({
             ...gameState,
             characters: {
                 ...gameState.characters,
-                [attacker.id]: attacker,
                 [defender.id]: defender,
             }
-        },
+        }),
         events: combatEvents,
     }
 
