@@ -9,7 +9,8 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
     l1: 'fight',
     l2: 'sabaidich',
     getCommandPreviews: (gameState: GameState) => {
-        let validEnemies = getLivingEnemies(gameState.player, gameState.currentRoom, gameState);
+        let player = gameState.characters[gameState.player];
+        let validEnemies = getLivingEnemies(gameState.player, player.room, gameState);
         let enabled = validEnemies.length > 0;
         return [
             {
@@ -48,7 +49,8 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
             });
         }
 
-        let validEnemies = getLivingEnemies(gameState.player, gameState.currentRoom, gameState);
+        let player = gameState.characters[gameState.player];
+        let validEnemies = getLivingEnemies(gameState.player, player.room, gameState);
         let identifiedEnemies = findCharactersByName(restOfCommand, validEnemies);
 
         // Validate the enemy name
@@ -68,7 +70,8 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
         });
     },
     getValidCommands: (gameState: GameState) => {
-        let enemies = getLivingEnemies(gameState.player, gameState.currentRoom, gameState);
+        let player = gameState.characters[gameState.player];
+        let enemies = getLivingEnemies(gameState.player, player.room, gameState);
         return {
             l1: enemies.map(enemy => 'fight ' + enemy.name.english.definite),
             l2: enemies.map(enemy => 'sabaidich ' + enemy.name.gaelic.definite),

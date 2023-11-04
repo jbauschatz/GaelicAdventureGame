@@ -23,22 +23,22 @@ export const GameEvent = variant({
         /**
          * Room the Character is moving from
          */
-        fromRoom: string,
+        sourceRoom: string,
 
         /**
-         * Room the Character is moving to
+         * Room the Character is moving into
          */
-        toRoom: string,
+        destinationRoom: string,
 
         /**
-         * Direction the Character is moving as they exit the fromRoom
+         * The Exit the Character took as they leave the source room, from the perspective of the source room
          */
-        toDirection: BilingualText,
+        sourceExit: string,
 
         /**
-         * The Exit the Character took as they exit the fromRoom
+         * The Exit the Character took as they entered the destination room, from the perspective of the destination room
          */
-        exit: string,
+        destinationExit: string,
     }>(),
 
     /**
@@ -119,6 +119,11 @@ export const GameEvent = variant({
      * Indicates the Player asks for help
      */
     help: {},
+
+    /**
+     * Indicates a Character waits
+     */
+    wait: fields<{actor: string}>(),
 });
 export type GameEvent<T extends TypeNames<typeof GameEvent> = undefined>
      = VariantOf<typeof GameEvent, T>;

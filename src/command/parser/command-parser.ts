@@ -5,11 +5,12 @@ import { GameCommand } from "../game-command";
 import { HELP_COMMAND_PARSER } from "./help-command-parser";
 import { LOOK_COMMAND_PARSER } from "./look-command-parser";
 import { INVENTORY_COMMAND_PARSER } from "./inventory-command-parser";
-import { GO_COMMAND_PARSER } from "./go-command-parser";
+import { MOVE_COMMAND_PARSER } from "./move-command-parser";
 import { TAKE_COMMAND_PARSER } from "./take-command-parser";
 import { CommandParser } from "./command";
 import { ATTACK_COMMAND_PARSER } from "./attack-command-parser";
 import { CommandPreview } from "./command-preview";
+import { WAIT_COMMAND_PARSER } from "./wait-command-parser";
 
 /**
  * Parsers for all commands which the player can execute
@@ -18,9 +19,10 @@ export const REGISTERED_COMMAND_PARSERS: Array<CommandParser> = [
     HELP_COMMAND_PARSER,
     LOOK_COMMAND_PARSER,
     INVENTORY_COMMAND_PARSER,
-    GO_COMMAND_PARSER,
+    MOVE_COMMAND_PARSER,
     TAKE_COMMAND_PARSER,
     ATTACK_COMMAND_PARSER,
+    WAIT_COMMAND_PARSER,
 ];
 
 /**

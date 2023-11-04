@@ -3,11 +3,12 @@ import { GameState } from "../../model/game/game-state";
 import { GameCommand } from "../game-command";
 import { CommandParser } from "./command";
 
-export const GO_COMMAND_PARSER: CommandParser = {
+export const MOVE_COMMAND_PARSER: CommandParser = {
     l1: 'go',
     l2: 'rach',
     getCommandPreviews: (gameState: GameState) => {
-        let exits = gameState.rooms[gameState.currentRoom].exits;
+        let player = gameState.characters[gameState.player];
+        let exits = gameState.rooms[player.room].exits;
 
         return [
             {
@@ -27,9 +28,7 @@ export const GO_COMMAND_PARSER: CommandParser = {
                     followUpPreviews: [],
                     command: GameCommand.move({
                         actor: gameState.player,
-                        fromRoom: gameState.currentRoom,
-                        toDirection: exit.direction,
-                        toRoom: exit.room,
+                        exit: exit.id,
                     }),
                 })),
                 command: undefined,
@@ -48,7 +47,8 @@ export const GO_COMMAND_PARSER: CommandParser = {
             });
         }
 
-        let playerRoom = gameState.rooms[gameState.currentRoom];
+        let player = gameState.characters[gameState.player];
+        let playerRoom = gameState.rooms[player.room];
         let exit = playerRoom.exits.find(exit => exit.direction.l1 === rest || exit.direction.l2 === rest);
 
         // Validate that a proper exit was identified
@@ -63,16 +63,15 @@ export const GO_COMMAND_PARSER: CommandParser = {
 
         return GameCommand.move({
             actor: gameState.player,
-            fromRoom: gameState.currentRoom,
-            toDirection: exit.direction,
-            toRoom: exit.room,
+            exit: exit.id,
         });
     },
     getValidCommands: (gameState: GameState) => {
-        let playerRoom = gameState.rooms[gameState.currentRoom];
+        let player = gameState.characters[gameState.player];
+        let exits = gameState.rooms[player.room].exits;
         return {
-            l1: playerRoom.exits.map(exit => 'go ' + exit.direction.l1),
-            l2: playerRoom.exits.map(exit => 'rach ' + exit.direction.l2),
+            l1: exits.map(exit => 'go ' + exit.direction.l1),
+            l2: exits.map(exit => 'rach ' + exit.direction.l2),
         };
     }
 }

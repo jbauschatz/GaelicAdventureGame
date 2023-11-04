@@ -8,7 +8,8 @@ export const TAKE_COMMAND_PARSER: CommandParser = {
     l1: 'take',
     l2: 'gabh',
     getCommandPreviews: (gameState: GameState) => {
-        let room = gameState.rooms[gameState.currentRoom];
+        let player = gameState.characters[gameState.player];
+        let room = gameState.rooms[player.room];
         let items = room.items.map(itemId => gameState.items[itemId]);
         let enabled = items.length > 0;
 
@@ -39,7 +40,8 @@ export const TAKE_COMMAND_PARSER: CommandParser = {
     },
     helpText: {l1: 'Take something', l2: 'Gabh rudeigin'},
     parse: (rest: string, gameState: GameState): GameCommand | GameEvent<'commandValidation'> => {
-        let room = gameState.rooms[gameState.currentRoom];
+        let player = gameState.characters[gameState.player];
+        let room = gameState.rooms[player.room];
 
         // Validate that the item exists
         let itemsByName = findItemByName(rest, room.items, gameState);
@@ -61,7 +63,8 @@ export const TAKE_COMMAND_PARSER: CommandParser = {
         });
     },
     getValidCommands: (gameState: GameState) => {
-        let room = gameState.rooms[gameState.currentRoom];
+        let player = gameState.characters[gameState.player];
+        let room = gameState.rooms[player.room];
         return {
             l1: room.items.map(item => 'take ' + gameState.items[item].name.english.definite),
             l2: room.items.map(item => 'gabh ' + gameState.items[item].name.gaelic.definite),

@@ -15,6 +15,11 @@ const directionSouth = {l1: 'south', l2: 'gu deas'};
 const directionEast = {l1: 'east', l2: 'gu ear'};
 const directionWest = {l1: 'west', l2: 'gus an iar'};
 
+const directionFromNorth = {l1: 'from the north', l2: 'bhon tuath'};
+const directionFromSouth = {l1: 'from the south', l2: 'bho dheas'};
+const directionFromEast = {l1: 'from the east', l2: 'bhon ear'};
+const directionFromWest = {l1: 'from the west', l2: 'bhon iar'};
+
 /**
  * Generates a GameState representing the initial state of a new game
  * 
@@ -59,7 +64,7 @@ export function newGame(): GameState {
         [],
         [],
     );
-    joinRooms(caveEntrance.room, tunnelNS.room, directionNorth, directionSouth);
+    joinRooms(caveEntrance.room, tunnelNS.room, directionNorth, directionFromNorth, directionSouth, directionFromSouth);
 
     let cavern = buildRoom(
         {l1: 'Big Cavern', l2: "Uamhaidh Mhòr"},
@@ -72,7 +77,7 @@ export function newGame(): GameState {
         [generateBigRat()],
         [generateKey()],
     );
-    joinRooms(tunnelNS.room, cavern.room, directionNorth, directionSouth);
+    joinRooms(tunnelNS.room, cavern.room, directionNorth, directionFromNorth, directionSouth, directionFromSouth);
 
     let tunnelEW = buildRoom(
         {l1: 'Narrow Tunnel', l2: "Tunail Caol"},
@@ -85,7 +90,7 @@ export function newGame(): GameState {
         [],
         [],
     );
-    joinRooms(cavern.room, tunnelEW.room, directionEast, directionWest);
+    joinRooms(cavern.room, tunnelEW.room, directionEast, directionFromEast, directionWest, directionFromWest);
 
     let tomb = buildRoom(
         {l1: 'Tomb', l2: "Tuama"},
@@ -102,7 +107,7 @@ export function newGame(): GameState {
         [generateSkeleton(), generateBigRat()],
         [],
     );
-    joinRooms(tunnelEW.room, tomb.room, directionEast, directionWest);
+    joinRooms(tunnelEW.room, tomb.room, directionEast, directionFromEast, directionWest, directionFromWest);
 
     let gildedDagger = generateFancyDagger();
     let antechamber = buildRoom(
@@ -120,7 +125,7 @@ export function newGame(): GameState {
         [generateBigRat()],
         [gildedDagger],
     );
-    let {going} = joinRooms(tomb.room, antechamber.room, directionSouth, directionNorth);
+    let {going} = joinRooms(tomb.room, antechamber.room, directionSouth, directionFromSouth, directionNorth, directionFromNorth);
 
     // Trap the entrance from Tomb to Antechamber
     tomb.room.triggers.push(Trigger.move({
@@ -153,14 +158,12 @@ export function newGame(): GameState {
 
     return buildGameState(
         player,
-        caveEntrance.room,
         [caveEntrance, tunnelNS, cavern, tunnelEW, tomb, antechamber],
     );
 }
 
 function buildGameState(
     player: Character,
-    startingRoom: Room,
     allRooms: Array<RoomWithResources>,
 ): GameState {
     let rooms: Record<string, Room> = {};
@@ -188,7 +191,6 @@ function buildGameState(
         characters,
         items,
         player: player.id,
-        currentRoom: startingRoom.id,
         characterTurnOrder: characterTurnOrder,
         characterWithTurn: player.id,
     }
@@ -226,20 +228,29 @@ function buildRoom(
     }
 }
 
-function joinRooms(room1: Room, room2: Room, direction: BilingualText, returnDirection: BilingualText): {
+function joinRooms(
+    room1: Room,
+    room2: Room,
+    direction1to2: BilingualText,
+    directionReverse1to2: BilingualText,
+    direction2to1: BilingualText,
+    directionReverse2to1: BilingualText
+): {
     going: Exit,
     coming: Exit,
 } {
     let going = {
         id: genId(),
-        direction: direction,
+        direction: direction1to2,
+        directionReverse: directionReverse1to2,
         room: room2.id,
     };
     room1.exits.push(going);
 
     let coming = {
         id: genId(),
-        direction: returnDirection,
+        direction: direction2to1,
+        directionReverse: directionReverse2to1,
         room: room1.id,
     };
     room2.exits.push(coming);

@@ -23,19 +23,9 @@ export const GameCommand = variant({
         actor: string,
 
         /**
-         * Room the Character is moving from
+         * Exit the Character is taking to exit their current Room
          */
-        fromRoom: string,
-
-        /**
-         * Room the Character is moving to
-         */
-        toRoom: string,
-
-        /**
-         * Direction the Character is moving as they exit the fromRoom
-         */
-        toDirection: BilingualText,
+        exit: string,
     }>(),
 
     /**

@@ -38,11 +38,6 @@ export type GameState = {
     player: string,
 
     /**
-     * The current room the Player Character is in, which is the game's narrative focus
-     */
-    currentRoom: string,
-
-    /**
      * {@link Character} ids in order they take their turns
      */
     characterTurnOrder: Array<string>,

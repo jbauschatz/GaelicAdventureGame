@@ -1,4 +1,5 @@
 import { GameState } from "../../model/game/game-state";
+import { pickOne } from "../../util/random-util";
 import { GameCommand } from "../game-command";
 
 /**
@@ -48,6 +49,24 @@ export const ATTACK_NEARBY_PLAYER: characterControllerModule = {
         return GameCommand.attack({
             attacker: characterId,
             defender: gameState.player
+        });
+    }
+}
+
+/**
+ * Move through a random exit available in the current room
+ */
+export const MOVE_RANDOMLY: characterControllerModule = {
+    canExecute: (characterId: string, gameState: GameState) => {
+        // Assume there is always a valid exit
+        return true;
+    },
+    execute: (characterId: string, gameState: GameState) => {
+        let currentRoomId = gameState.characters[characterId].room;
+        let exit = pickOne(gameState.rooms[currentRoomId].exits);
+        return GameCommand.move({
+            actor: characterId,
+            exit: exit.id,
         });
     }
 }

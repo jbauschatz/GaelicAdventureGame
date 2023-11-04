@@ -5,6 +5,7 @@ import { GameCommand } from "./game-command"
 import _ from "lodash"
 import { Character } from "../model/game/character"
 import { Trigger } from "../model/game/trigger"
+import { Room } from "../model/game/room"
 
 export type GameStateTransition = {
     events: Array<GameEvent>,
@@ -58,51 +59,76 @@ function nextTurn(gameState: GameState) {
 function executeWaitCommand(wait: GameCommand<'wait'>, gameState: GameState): GameStateTransition {
     return {
         gameStateAfter: nextTurn(gameState),
-        events: [],
+        events: [
+            GameEvent.wait({actor: wait.actor})
+        ],
     }
 }
 
 function executeMoveCommand(move: GameCommand<'move'>, gameState: GameState): GameStateTransition {
-    let playerRoom = gameState.rooms[gameState.currentRoom];
-    let exit = playerRoom.exits.find(exit => exit.direction === move.toDirection)!;
-    let newRoom = exit.room;
+    let characterMoving = gameState.characters[move.actor];
+    let sourceRoom = gameState.rooms[characterMoving.room];
+    let exit = sourceRoom.exits.find(exit => exit.id === move.exit)!;
+    let destinationRoom = gameState.rooms[exit.room];
 
-    // Move the Player into the new room
-    let player = gameState.characters[gameState.player];
-    let playerAfterMove: Character = {
-        ...player,
-        room: newRoom,
-    }
+    // Move the Character from room to room
+    let characterAfterMove: Character = {
+        ...characterMoving,
+        room: destinationRoom.id,
+    };
+    let sourceRoomAfterMove: Room = {
+        ...sourceRoom,
+        characters: _.without(sourceRoom.characters, characterMoving.id),
+    };
+    let destinationRoomAfterMove: Room = {
+        ...destinationRoom,
+        characters: [...destinationRoom.characters, characterMoving.id],
+    };
+
+    // Update the game state
     let gameStateAfter: GameState = nextTurn({
         ...gameState,
         characters: {
             ...gameState.characters,
-            [gameState.player]: playerAfterMove,
+            [characterMoving.id]: characterAfterMove,
         },
-        currentRoom: newRoom,
+        rooms: {
+            ...gameState.rooms,
+            [sourceRoomAfterMove.id]: sourceRoomAfterMove,
+            [destinationRoomAfterMove.id]: destinationRoomAfterMove,
+        }
     });
 
+    // Determine the destination exit, the exit on the destinationRoom side
+    let destinationExit = destinationRoomAfterMove.exits.find(exit => exit.room === sourceRoomAfterMove.id)!;
+
+    var events: Array<GameEvent> = [
+        GameEvent.move({
+            actor: move.actor,
+            sourceRoom: sourceRoomAfterMove.id,
+            destinationRoom: destinationRoomAfterMove.id,
+            sourceExit: exit.id,
+            destinationExit: destinationExit.id,
+        }),
+    ];
+    if (move.actor === gameState.player) {
+        events = [...events, GameEvent.look({isPlayerInitiated: false})]
+    }
+
+    // Generate state transition
     let moveTransition = {
         gameStateAfter,
-        events: [
-            GameEvent.move({
-                actor: gameState.player,
-                fromRoom: gameState.currentRoom,
-                toRoom: gameStateAfter.currentRoom,
-                toDirection: exit.direction,
-                exit: exit.id
-            }),
-            GameEvent.look({isPlayerInitiated: false}),
-        ],
+        events: events,
     };
     return resolveTriggerConditions(moveTransition);
 }
 
 function executeTakeItem(takeItem: GameCommand<'takeItem'>, gameState: GameState): GameStateTransition {
-    let room = gameState.rooms[gameState.currentRoom];
+    // TODO do not assume the player is taking the item
+    let player = gameState.characters[gameState.player];
+    let room = gameState.rooms[player.room];
 
     // Add the Item to the Player's inventory
-    let player = gameState.characters[gameState.player]
     let newPlayer = {
         ...player,
         items: [...player.items, takeItem.item],
@@ -255,15 +281,15 @@ function resolveTriggerConditions(gameStateTransition: GameStateTransition): Gam
         }
         if (isType(event, GameEvent.move)) {
             let triggeringCharacter = event.actor;
-            let eventRoomId = event.fromRoom;
-            let eventRoom = gameState.rooms[eventRoomId];
+            let eventRoom = gameState.rooms[event.sourceRoom];
             eventRoom.triggers.forEach(trigger => {
+                // Move triggers trigger from the source room
                 if (isType(trigger, Trigger.move)) {
                     // Determine if the direction triggers the trigger
-                    if (event.exit === trigger.exit) {
+                    if (event.sourceExit === trigger.exit) {
                         let triggeredCommand = trigger.buildCommand(
                             triggeringCharacter,
-                            eventRoomId,
+                            event.sourceRoom,
                         );
                         let triggerTransition = executeCommand(triggeredCommand, gameState);
                         gameState = triggerTransition.gameStateAfter;

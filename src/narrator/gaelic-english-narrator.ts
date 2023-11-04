@@ -9,6 +9,7 @@ import { REGISTERED_COMMAND_PARSERS } from "../command/parser/command-parser";
 import { getLivingEnemies } from "../model/game/game-state-util";
 import { Character } from "../model/game/character";
 import { GameEntityMetadata } from "./game-entity-metadata";
+import { capitalizeEnglish } from "../model/language/english/english-string-util";
 
 export const GAELIC_ENGLISH_NARRATOR: Narrator = {
     narrateEvent: (event: GameEvent, gameStateBefore: GameState, gameStateAfter: GameState) => {
@@ -22,6 +23,7 @@ export const GAELIC_ENGLISH_NARRATOR: Narrator = {
             attack: attack => narrateAttack(attack, gameStateAfter),
             trapDamage: trapDamage => narrateTrapDamage(trapDamage, gameStateAfter),
             narration: narration => narrateNarration(narration),
+            wait: wait => narrateWait(wait, gameStateAfter),
             gameOver: () => narrateGameOver(),
         });
     }
@@ -31,7 +33,8 @@ export const GAELIC_ENGLISH_NARRATOR: Narrator = {
  * Narrates the Look command by describing the player's current location
  */
 export function narrateRoom(gameState: GameState): Story {
-    let room = gameState.rooms[gameState.currentRoom];
+    let player = gameState.characters[gameState.player];
+    let room = gameState.rooms[player.room];
     let story: Story = [];
 
     // Heading - title of room
@@ -186,25 +189,86 @@ function narrateLook(look: GameEvent<'look'>, gameStateAfter: GameState): Story 
 }
 
 function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story {
-    let toDirection = move.toDirection
+    let player = gameStateAfter.characters[gameStateAfter.player];
+    let actor = gameStateAfter.characters[move.actor];
+    let sourceRoom = gameStateAfter.rooms[move.sourceRoom];
+    let destinationRoom = gameStateAfter.rooms[move.destinationRoom];
+    let sourceExit = sourceRoom.exits.find(exit => exit.id === move.sourceExit)!;
+    let destinationExit = destinationRoom.exits.find(exit => exit.id === move.destinationExit)!;
+    
+    console.log(`[event] [move]: ${actor.name.english.base} from ${sourceRoom.name.l1} to ${destinationRoom.name.l1}`);
 
-    return [
-        // Narrate the movement to the new room
-        StoryElement.paragraph([
-            ParagraphElement.bilingual({
-                l1: [
-                    'You go ',
-                    ref(GameEntityMetadata.direction(), toDirection.l1),
-                    '...'
-                ],
-                l2: [
-                    'Thèid thu ',
-                    ref(GameEntityMetadata.direction(), toDirection.l2),
-                    '...'
-                ],
-            })
-        ]),
-    ];
+    // Case 1: the Player is moving to another room
+    if (move.actor === player.id) {
+        let playerDirection = sourceExit.direction;
+        return [
+            StoryElement.paragraph([
+                ParagraphElement.bilingual({
+                    l1: [
+                        'You go ',
+                        ref(GameEntityMetadata.direction(), playerDirection.l1),
+                        '...'
+                    ],
+                    l2: [
+                        'Thèid thu ',
+                        ref(GameEntityMetadata.direction(), playerDirection.l2),
+                        '...'
+                    ],
+                })
+            ]),
+        ];
+    }
+
+    // Case 2: another Creature exits the Player's room
+    if (sourceRoom.id === player.room) {
+        let exitDirection = sourceExit.direction;
+        return [
+            StoryElement.paragraph([
+                ParagraphElement.bilingual({
+                    l1: [
+                        ref(GameEntityMetadata.enemy(), capitalizeEnglish(actor.name.english.definite)),
+                        ' exits ',
+                        ref(GameEntityMetadata.direction(), exitDirection.l1),
+                        '.'
+                    ],
+                    l2: [
+                        'Falbhaidh ',
+                        ref(GameEntityMetadata.enemy(), actor.name.gaelic.definite),
+                        ' ',
+                        ref(GameEntityMetadata.direction(), exitDirection.l2),
+                        '.'
+                    ],
+                })
+            ]),
+        ];
+    }
+
+    // Case 3: another Creature enters the Player's room
+    if (destinationRoom.id === player.room) {
+        let entranceDirection = destinationExit.directionReverse;
+        return [
+            StoryElement.paragraph([
+                ParagraphElement.bilingual({
+                    l1: [
+                        ref(GameEntityMetadata.enemy(), capitalizeEnglish(actor.name.english.indefinite)),
+                        ' enters ',
+                        ref(GameEntityMetadata.direction(), entranceDirection.l1),
+                        '.'
+                    ],
+                    l2: [
+                        'Thèid ',
+                        ref(GameEntityMetadata.enemy(), actor.name.gaelic.indefinite),
+                        ' a-steach ',
+                        ref(GameEntityMetadata.direction(), entranceDirection.l2),
+                        '.'
+                    ],
+                })
+            ]),
+        ];
+    }
+
+    // Case 4: movement does not involve the Player's location
+    return [];
 }
 
 function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState): Story {
@@ -266,7 +330,7 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
     let attackParagraphElements = [
         ParagraphElement.bilingual({
             l1: [
-                ref(GameEntityMetadata.enemy(), attacker.name.english.definite),
+                ref(GameEntityMetadata.enemy(), capitalizeEnglish(attacker.name.english.definite)),
                 ' attacks you!'
             ],
             l2: [
@@ -289,29 +353,82 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
     ];
 }
 
-function narrateTrapDamage(trapDamage: GameEvent<'trapDamage'>, gameState: GameState): Story{
-    // TODO: don't assume it's the player triggering the trap
-    let attackParagraphElements = [
-        ParagraphElement.bilingual({
-            l1: 'A trap damages you!',
-            l2: 'Nì trap cron ort!',
-        })
-    ];
-    if (trapDamage.isFatal) {
-        attackParagraphElements.push(
+function narrateTrapDamage(trapDamage: GameEvent<'trapDamage'>, gameState: GameState): Story {
+    // Case 1: the Player gets damaged
+    if (trapDamage.defender === gameState.player) {
+        let attackParagraphElements = [
             ParagraphElement.bilingual({
-                l1: `You die!`,
-                l2: `Dìthidh tu!`,
+                l1: 'A trap damages you!',
+                l2: 'Nì trap cron ort!',
             })
-        )
+        ];
+        if (trapDamage.isFatal) {
+            attackParagraphElements.push(
+                ParagraphElement.bilingual({
+                    l1: `You die!`,
+                    l2: `Dìthidh tu!`,
+                })
+            )
+        }
+        return [
+            StoryElement.paragraph(attackParagraphElements, 'combat')
+        ];
     }
-    return [
-        StoryElement.paragraph(attackParagraphElements, 'combat')
-    ];
+
+    // Case 2: another Creature gets damaged which the Player can see
+    let defender = gameState.characters[trapDamage.defender];
+    let player = gameState.characters[gameState.player];
+    if (defender.room === player.room) {
+        let attackParagraphElements = [
+            ParagraphElement.bilingual({
+                l1: [
+                    'A trap damages ',
+                    ref(GameEntityMetadata.enemy(), defender.name.english.definite),
+                    '!',
+                ],
+                l2: [
+                    'Nì trap cron air ',
+                    ref(GameEntityMetadata.enemy(), defender.name.gaelic.definite),
+                    '!',
+                ],
+            })
+        ];
+        if (trapDamage.isFatal) {
+            attackParagraphElements.push(
+                ParagraphElement.bilingual({
+                    l1: 'It dies!',
+                    l2: 'Dìthidh e!',
+                })
+            )
+        }
+        return [
+            StoryElement.paragraph(attackParagraphElements, 'combat')
+        ];
+    }
+
+    // Case 3: another Creature gets damaged and the Player cannot see
+    return [];    
 }
 
 function narrateNarration(narration: GameEvent<'narration'>): Story {
     return narration.story;
+}
+
+function narrateWait(wait: GameEvent<'wait'>, gameState: GameState): Story {
+    // Case 1: the Player waits
+    if (wait.actor === gameState.player) {
+        return [
+            StoryElement.paragraph([
+                ParagraphElement.bilingual({
+                    l1: 'You wait...',
+                    l2: 'Fuirich tu...',
+                })
+            ])
+        ];
+    }
+
+    // Case 2: another Character waits
+    return [];
 }
 
 function narrateGameOver() {
