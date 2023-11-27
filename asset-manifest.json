@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/GaelicAdventureGame/static/css/main.d586811d.css",
-    "main.js": "/GaelicAdventureGame/static/js/main.43778b68.js",
+    "main.js": "/GaelicAdventureGame/static/js/main.67cf9aed.js",
     "static/js/787.42e317e1.chunk.js": "/GaelicAdventureGame/static/js/787.42e317e1.chunk.js",
     "index.html": "/GaelicAdventureGame/index.html",
     "main.d586811d.css.map": "/GaelicAdventureGame/static/css/main.d586811d.css.map",
-    "main.43778b68.js.map": "/GaelicAdventureGame/static/js/main.43778b68.js.map",
+    "main.67cf9aed.js.map": "/GaelicAdventureGame/static/js/main.67cf9aed.js.map",
     "787.42e317e1.chunk.js.map": "/GaelicAdventureGame/static/js/787.42e317e1.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.d586811d.css",
-    "static/js/main.43778b68.js"
+    "static/js/main.67cf9aed.js"
   ]
 }
