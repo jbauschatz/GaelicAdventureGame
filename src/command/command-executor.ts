@@ -162,6 +162,7 @@ function executeTakeItem(takeItem: GameCommand<'takeItem'>, gameState: GameState
 }
 
 function executeAttack(attack: GameCommand<'attack'>, gameState: GameState): GameStateTransition {
+    let attacker = gameState.characters[attack.attacker];
     let defender = gameState.characters[attack.defender];
 
     // Apply damage to the defender
@@ -172,6 +173,7 @@ function executeAttack(attack: GameCommand<'attack'>, gameState: GameState): Gam
     let attackEvent = GameEvent.attack({
         attacker: attack.attacker,
         defender: attack.defender,
+        weapon: attacker.equippedWeapon,
         isFatal: defender.currentHealth === 0,
     });
     let combatEvents: Array<GameEvent> = [attackEvent];

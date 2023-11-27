@@ -9,6 +9,7 @@ export type Character = {
     name: BilingualName,
     room: string,
     items: Array<string>,
+    equippedWeapon: string | undefined,
     maxHealth: number,
     currentHealth: number,
 }

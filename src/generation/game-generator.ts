@@ -5,7 +5,7 @@ import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
 import { Room } from "../model/game/room";
 import { genId } from "./id";
-import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER } from "../model/language/lexicon";
+import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER, NOUN_DAGGER } from "../model/language/lexicon";
 import { Trigger } from "../model/game/trigger";
 import { GameCommand } from "../command/game-command";
 import { Exit } from "../model/game/exit";
@@ -147,14 +147,19 @@ export function newGame(): GameState {
         }),
     );
 
-    let player: Character = {
-        id: genId(),
-        name: PRONOUN_YOU_SINGULAR,
-        room: caveEntrance.room.id,
-        items: [],
-        maxHealth: 10,
-        currentHealth: 10,
-    };
+    let playerWeapon = generateDagger();
+    let player: CharacterWithResources = {
+        character: {
+            id: genId(),
+            name: PRONOUN_YOU_SINGULAR,
+            room: caveEntrance.room.id,
+            items: [playerWeapon.id],
+            equippedWeapon: playerWeapon.id,
+            maxHealth: 10,
+            currentHealth: 10,
+        },
+        items: [playerWeapon],
+    }
 
     return buildGameState(
         player,
@@ -163,24 +168,46 @@ export function newGame(): GameState {
 }
 
 function buildGameState(
-    player: Character,
+    player: CharacterWithResources,
     allRooms: Array<RoomWithResources>,
 ): GameState {
     let rooms: Record<string, Room> = {};
     let characters: Record<string, Character> = {
-        [player.id]: player,
+        [player.character.id]: player.character,
     };
     let items: Record<string, Item> = {};
 
+    // Add all rooms to the game state, with their characters and items
     allRooms.forEach(room => {
         rooms[room.room.id] = room.room;
-        room.characters.forEach(character => {
-            characters[character.id] = character;
-        });
+
+        // Add the Room's Items to the GameState
         room.items.forEach(item => {
             items[item.id] = item;
         });
+
+        room.characters.forEach(characterWithResources => {
+            // Add the Character to the GameState
+            characters[characterWithResources.character.id] = characterWithResources.character;
+
+            // Add each of its Items to the GameState
+            characterWithResources.items.forEach(item => {
+                items[item.id] = item;
+            });
+        });
     });
+
+    // Add the player's inventory to game state
+    player.items.forEach(item => {
+        items[item.id] = item;
+    });
+
+    // Add the Player to their starting room
+    let playerRoom = rooms[player.character.room]
+    rooms[playerRoom.id] = {
+        ...playerRoom,
+        characters: [...playerRoom.characters, player.character.id]
+    }
 
     // Combine characters into an arbitrary turn order
     let characterTurnOrder = Object.keys(characters);
@@ -190,22 +217,22 @@ function buildGameState(
         rooms,
         characters,
         items,
-        player: player.id,
+        player: player.character.id,
         characterTurnOrder: characterTurnOrder,
-        characterWithTurn: player.id,
-    }
+        characterWithTurn: player.character.id,
+    };
 }
 
 type RoomWithResources = {
     room: Room,
-    characters: Array<Character>,
+    characters: Array<CharacterWithResources>,
     items: Array<Item>
 };
 
 function buildRoom(
     name: BilingualText,
     description: StoryElement<'paragraph'>,
-    characters: Array<Character>,
+    characters: Array<CharacterWithResources>,
     items: Array<Item>,
 ): RoomWithResources {
     let roomId = genId()
@@ -215,14 +242,17 @@ function buildRoom(
             id: roomId,
             name,
             description,
-            characters: characters.map(character => character.id),
+            characters: characters.map(character => character.character.id),
             items: items.map(item => item.id),
             exits: [],
             triggers: [],
         },
-        characters: characters.map(character => ({
-            ...character,
-            room: roomId,
+        characters: characters.map(characterWithResources => ({
+            ...characterWithResources,
+            character: {
+                ...characterWithResources.character,
+                room: roomId,
+            },
         })),
         items,
     }
@@ -261,37 +291,63 @@ function joinRooms(
     }
 }
 
-function generateSkeleton(): Character {
+type CharacterWithResources = {
+    character: Character,
+    items: Item[],
+}
+
+function generateSkeleton(): CharacterWithResources {
+    let weapon = generateSword();
+
+    return {
+        character: {
+            id: genId(),
+            name: NOUN_SKELETON,
+            room: '',
+            items: [weapon.id],
+            equippedWeapon: weapon.id,
+            maxHealth: 2,
+            currentHealth: 2,
+        },
+        items: [weapon],   
+    }
+}
+
+function generateSpider(): CharacterWithResources {
+    return {
+        character: {
+            id: genId(),
+            name: NOUN_BIG_SPIDER,
+            room: '',
+            items: [],
+            equippedWeapon: undefined,
+            maxHealth: 1,
+            currentHealth: 1,
+        },
+        items: [],
+    }
+}
+
+function generateBigRat(): CharacterWithResources {
+    return {
+        character: {
+            id: genId(),
+            name: NOUN_BIG_RAT,
+            room: '',
+            items: [],
+            equippedWeapon: undefined,
+            maxHealth: 1,
+            currentHealth: 1,
+        },
+        items: [],
+    }
+}
+
+function generateDagger(): Item {
     return {
         id: genId(),
-        name: NOUN_SKELETON,
-        room: '',
-        items: [],
-        maxHealth: 2,
-        currentHealth: 2,
+        name: NOUN_DAGGER,
     };
-}
-
-function generateSpider(): Character {
-    return {
-        id: genId(),
-        name: NOUN_BIG_SPIDER,
-        room: '',
-        items: [],
-        maxHealth: 1,
-        currentHealth: 1,
-    }
-}
-
-function generateBigRat(): Character {
-    return {
-        id: genId(),
-        name: NOUN_BIG_RAT,
-        room: '',
-        items: [],
-        maxHealth: 1,
-        currentHealth: 1,
-    }
 }
 
 function generateSword(): Item {

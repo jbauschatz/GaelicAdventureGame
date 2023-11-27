@@ -1,6 +1,6 @@
 import { match } from "variant";
 import { GameEvent } from "../event/game-event";
-import { ParagraphElement, Story, StoryElement, ref } from "../model/bilingual-story/story";
+import { EntityReference, ParagraphElement, Story, StoryElement, StoryText, ref } from "../model/bilingual-story/story";
 import { Narrator } from "./narrator";
 import { GameState } from "../model/game/game-state";
 import { Room } from "../model/game/room";
@@ -9,7 +9,10 @@ import { REGISTERED_COMMAND_PARSERS } from "../command/parser/command-parser";
 import { getLivingEnemies } from "../model/game/game-state-util";
 import { Character } from "../model/game/character";
 import { GameEntityMetadata } from "./game-entity-metadata";
-import { capitalizeEnglish } from "../model/language/english/english-string-util";
+import { capitalizeEnglish, makeEnglishPossessive } from "../model/language/english/english-util";
+import { EnglishPersonGenderNumber } from "../model/language/english/english-person-gender-number";
+import { GaelicPersonGenderNumber } from "../model/language/gaelic/gaelic-person-gender-number";
+import { makeGaelicPossessiveWithAig } from "../model/language/gaelic/gaelic-util";
 
 export const GAELIC_ENGLISH_NARRATOR: Narrator = {
     narrateEvent: (event: GameEvent, gameStateBefore: GameState, gameStateAfter: GameState) => {
@@ -294,24 +297,63 @@ function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState):
 }
 
 function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story {
+    let attacker = gameState.characters[attack.attacker];
+
+    // If a weapon was used, build a descriptive clause about the weapon
+    let weaponParagraphElements: {
+        l1: Array<string | EntityReference>,
+        l2: Array<string | EntityReference>,
+    };
+    if (attack.weapon === undefined) {
+        weaponParagraphElements = {
+            l1: [],
+            l2: [],
+        };
+    } else {
+        let attackItem = gameState.items[attack.weapon];
+        let englishPgn: EnglishPersonGenderNumber = attack.attacker === gameState.player ? 'you' : 'it';
+        let gaelicPgn: GaelicPersonGenderNumber = attack.attacker === gameState.player ? 'you (s)' : 'he';
+        weaponParagraphElements = {
+            l1: [
+                ' with ',
+                ...makeEnglishPossessive(
+                    attackItem.name.english,
+                    englishPgn,
+                    itemWord => ref(GameEntityMetadata.item(), itemWord),
+                ),
+            ],
+            l2: [
+                ' leis ', // TODO - determine when le vs leis is used
+                ...makeGaelicPossessiveWithAig(
+                    attackItem.name.gaelic,
+                    gaelicPgn,
+                    itemWord => ref(GameEntityMetadata.item(), itemWord),
+                ),
+            ],
+        };
+    }
+
     // Case 1: The Player attacking another Character
     if (attack.attacker === gameState.player) {
         let defender = gameState.characters[attack.defender];
 
-        let attackParagraphElements = [
+        let attackParagraphElements: ParagraphElement[] = [
             ParagraphElement.bilingual({
                 l1: [
                     'You attack ',
                     ref(GameEntityMetadata.enemy(), defender.name.english.definite),
+                    ...weaponParagraphElements.l1,
                     '!'
                 ],
                 l2: [
                     'Sabaidichidh tu ',
                     ref(GameEntityMetadata.enemy(), defender.name.gaelic.definite),
+                    ...weaponParagraphElements.l2,
                     '!'
                 ],
             })
         ];
+        
         if (attack.isFatal) {
             attackParagraphElements.push(
                 ParagraphElement.bilingual({
@@ -326,17 +368,20 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
     }
 
     // Case 2: Another Character attacking the Player
-    let attacker = gameState.characters[attack.attacker];
     let attackParagraphElements = [
         ParagraphElement.bilingual({
             l1: [
                 ref(GameEntityMetadata.enemy(), capitalizeEnglish(attacker.name.english.definite)),
-                ' attacks you!'
+                ' attacks you',
+                ...weaponParagraphElements.l1,
+                '!'
             ],
             l2: [
                 'Sabaidichidh ',
                 ref(GameEntityMetadata.enemy(), attacker.name.gaelic.definite),
-                ' thu!'
+                ' thu',
+                ...weaponParagraphElements.l2,
+                '!'
             ],
         })
     ];
@@ -351,6 +396,8 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
     return [
         StoryElement.paragraph(attackParagraphElements, 'combat')
     ];
+
+    // TODO Case 3: Another Character attacks another Character in the Player's room
 }
 
 function narrateTrapDamage(trapDamage: GameEvent<'trapDamage'>, gameState: GameState): Story {

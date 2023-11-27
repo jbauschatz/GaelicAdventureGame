@@ -66,6 +66,11 @@ export const GameEvent = variant({
         attacker: string,
 
         /**
+         * Item the attacker is attacking with, if any
+         */
+        weapon: string | undefined,
+
+        /**
          * The Character defending
          */
         defender: string,

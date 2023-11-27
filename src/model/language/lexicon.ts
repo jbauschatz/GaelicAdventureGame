@@ -59,6 +59,18 @@ export const NOUN_SWORD = {
     },
 };
 
+export const NOUN_DAGGER = {
+    english: {
+        base: 'dagger',
+        indefinite: 'a dagger',
+        definite: 'the dagger'
+    },
+    gaelic: {
+        indefinite: 'biodag',
+        definite: "a' bhiodag",
+    },
+};
+
 export const NOUN_FANCY_DAGGER = {
     english: {
         base: 'gilded dagger',
