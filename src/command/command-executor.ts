@@ -71,11 +71,20 @@ function executeMoveCommand(move: GameCommand<'move'>, gameState: GameState): Ga
     let exit = sourceRoom.exits.find(exit => exit.id === move.exit)!;
     let destinationRoom = gameState.rooms[exit.room];
 
+    let gameStateAfter: GameState = nextTurn({
+        ...gameState,
+    });
+
     // Move the Character from room to room
     let characterAfterMove: Character = {
         ...characterMoving,
         room: destinationRoom.id,
     };
+    gameStateAfter.characters = {
+        ...gameStateAfter.characters,
+        [characterMoving.id]: characterAfterMove,
+    };
+
     let sourceRoomAfterMove: Room = {
         ...sourceRoom,
         characters: _.without(sourceRoom.characters, characterMoving.id),
@@ -85,19 +94,32 @@ function executeMoveCommand(move: GameCommand<'move'>, gameState: GameState): Ga
         characters: [...destinationRoom.characters, characterMoving.id],
     };
 
-    // Update the game state
-    let gameStateAfter: GameState = nextTurn({
-        ...gameState,
-        characters: {
-            ...gameState.characters,
-            [characterMoving.id]: characterAfterMove,
-        },
-        rooms: {
-            ...gameState.rooms,
-            [sourceRoomAfterMove.id]: sourceRoomAfterMove,
-            [destinationRoomAfterMove.id]: destinationRoomAfterMove,
-        }
+    // Any living followers in the same room move too
+    let followersWhoMoveToo = sourceRoomAfterMove.characters.filter(characterId => {
+        let character = gameStateAfter.characters[characterId];
+        return character.currentHealth > 0
+                && character.partyLeader === move.actor;
     });
+    followersWhoMoveToo.forEach(followerId => {
+        let follower = gameStateAfter.characters[followerId];
+        let followerAfterMove: Character = {
+            ...follower,
+            room: destinationRoom.id,
+        };
+        gameStateAfter.characters = {
+            ...gameStateAfter.characters,
+            [followerId]: followerAfterMove,
+        };
+        sourceRoomAfterMove.characters = _.without(sourceRoom.characters, followerId);
+        destinationRoomAfterMove.characters = [...destinationRoom.characters, followerId];
+    });
+
+    // Update the Rooms in the Game state
+    gameStateAfter.rooms = {
+        ...gameStateAfter.rooms,
+        [sourceRoomAfterMove.id]: sourceRoomAfterMove,
+        [destinationRoomAfterMove.id]: destinationRoomAfterMove,
+    };
 
     // Determine the destination exit, the exit on the destinationRoom side
     let destinationExit = destinationRoomAfterMove.exits.find(exit => exit.room === sourceRoomAfterMove.id)!;
@@ -105,6 +127,7 @@ function executeMoveCommand(move: GameCommand<'move'>, gameState: GameState): Ga
     var events: Array<GameEvent> = [
         GameEvent.move({
             actor: move.actor,
+            followers: followersWhoMoveToo,
             sourceRoom: sourceRoomAfterMove.id,
             destinationRoom: destinationRoomAfterMove.id,
             sourceExit: exit.id,
@@ -172,6 +195,7 @@ function executeAttack(attack: GameCommand<'attack'>, gameState: GameState): Gam
     }
     let attackEvent = GameEvent.attack({
         attacker: attack.attacker,
+        room: attacker.room,
         defender: attack.defender,
         weapon: attacker.equippedWeapon,
         isFatal: defender.currentHealth === 0,
@@ -203,6 +227,7 @@ function executeTrapDamage(trapDamage: GameCommand<'trapDamage'>, gameState: Gam
 
     let trapDamageEvent = GameEvent.trapDamage({
         defender: defender.id,
+        room: defender.room,
         isFatal: defender.currentHealth === 0,
     });
 

@@ -5,7 +5,7 @@ import { CommandEntryMode } from "./command-builder-panel";
 
 let instructions = ParagraphElement.bilingual({
     l1: "enter a command...",
-    l2: "cuir a-steach comand..."
+    l2: "cuir a-steach àithne..."
 });
 
 type CommandPreviewTextProperties = {

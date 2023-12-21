@@ -12,7 +12,7 @@ import { executeCommand } from './command/command-executor';
 import { GAELIC_HELP_COMMAND } from './command/parser/help-command-parser';
 import { useCommandBuilderPanel } from './view/component/command/builder/command-builder-panel';
 import { CommandInputs } from './command/command-inputs';
-import { ATTACK_NEARBY_PLAYER, CharacterController, MOVE_RANDOMLY, buildCharacterController } from './command/controller/character-controller';
+import { ATTACK_NEARBY_ENEMY, CharacterController, MOVE_RANDOMLY, buildCharacterController } from './command/controller/character-controller';
 
 export const GLOBAL_HELP_PROMPT = ParagraphElement.bilingual({
   l1: "Type 'help' for help.", 
@@ -38,7 +38,7 @@ let initialStory: Story = [
  * Default {@link CharacterController} to control Creatures on their turn
  */
 let defaultCreatureController = buildCharacterController([
-  ATTACK_NEARBY_PLAYER,
+  ATTACK_NEARBY_ENEMY,
   MOVE_RANDOMLY,
 ]);
 

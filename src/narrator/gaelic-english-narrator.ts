@@ -1,18 +1,18 @@
 import { match } from "variant";
 import { GameEvent } from "../event/game-event";
-import { EntityReference, ParagraphElement, Story, StoryElement, StoryText, ref } from "../model/bilingual-story/story";
+import { EntityReference, ParagraphElement, Story, StoryElement, ref } from "../model/bilingual-story/story";
 import { Narrator } from "./narrator";
 import { GameState } from "../model/game/game-state";
 import { Room } from "../model/game/room";
 import { CONJUNCTION_OR, buildOxfordCommaList } from "../model/bilingual-story/story-util";
 import { REGISTERED_COMMAND_PARSERS } from "../command/parser/command-parser";
-import { getLivingEnemies } from "../model/game/game-state-util";
 import { Character } from "../model/game/character";
 import { GameEntityMetadata } from "./game-entity-metadata";
-import { capitalizeEnglish, makeEnglishPossessive } from "../model/language/english/english-util";
-import { EnglishPersonGenderNumber } from "../model/language/english/english-person-gender-number";
-import { GaelicPersonGenderNumber } from "../model/language/gaelic/gaelic-person-gender-number";
-import { makeGaelicPossessiveWithAig } from "../model/language/gaelic/gaelic-util";
+import { capitalizeEnglish, conjugateEnglishVerb, getEnglishNominativePronoun, makeEnglishPossessive } from "../model/language/english/english-util";
+import { getGaelicPronoun } from "../model/language/gaelic/gaelic-util";
+import { getLivingCompanionsInRoom, getLivingEnemiesInRoom } from "../model/game/game-state-util";
+import { getGaelicPersonGenderNumber, makeGaelicDative, makeGaelicDefinite, makeGaelicIndefinite } from "../model/language/gaelic/gaelic-noun";
+import { GAELIC_PREPOSITION_AIG, GAELIC_PREPOSITION_AIR, GaelicPreposition } from "../model/language/gaelic/gaelic-preposition";
 
 export const GAELIC_ENGLISH_NARRATOR: Narrator = {
     narrateEvent: (event: GameEvent, gameStateBefore: GameState, gameStateAfter: GameState) => {
@@ -55,22 +55,28 @@ export function narrateRoom(gameState: GameState): Story {
     story.push(describeExits(room));
 
     // Enemies
-    let enemies = getLivingEnemies(gameState.player, room.id, gameState);
+    let enemies = getLivingEnemiesInRoom(gameState.player, gameState);
     if (enemies.length > 0) {
-        story.push(describeCharacters(enemies));
+        story.push(describeEnemies(enemies));
+    }
+
+    // Companions
+    let companions = getLivingCompanionsInRoom(gameState.player, gameState);
+    if (companions.length > 0) {
+        story = [...story, ...describeCompanions(companions, gameState)];
     }
     
     return story;
 }
 
-function describeCharacters(enemies: Array<Character>): StoryElement<'paragraph'> {
+function describeEnemies(enemies: Array<Character>): StoryElement<'paragraph'> {
     let enemiesWithNames = enemies
         .map(enemy => {
             return {
                 entity: GameEntityMetadata.enemy(),
                 name: {
                     l1: enemy.name.english.indefinite,
-                    l2: enemy.name.gaelic.indefinite,
+                    l2: makeGaelicIndefinite(enemy.name.gaelic),
                 }
             };
         });
@@ -81,6 +87,26 @@ function describeCharacters(enemies: Array<Character>): StoryElement<'paragraph'
     ]);
 }
 
+function describeCompanions(companions: Array<Character>, gameState: GameState): Array<StoryElement<'paragraph'>> {
+    return companions.map(companion => {
+        let companionName = buildDefiniteName(companion, gameState);
+        return StoryElement.paragraph([
+            ParagraphElement.bilingual({
+                l1: [
+                    "Your companion ",
+                    companionName.english,
+                    " is here."
+                ],
+                l2: [
+                    "Tha do chompach ",
+                    companionName.gaelic,
+                    " an seo."
+                ]
+            }),
+        ])
+    });
+}
+
 function describeItems(room: Room, gameState: GameState): StoryElement<'paragraph'> {
     let itemsInRoom = room.items
         .map(itemId => {
@@ -89,7 +115,7 @@ function describeItems(room: Room, gameState: GameState): StoryElement<'paragrap
                 entity: GameEntityMetadata.item(),
                 name: {
                     l1: item.name.english.indefinite,
-                    l2: item.name.gaelic.indefinite,
+                    l2: makeGaelicIndefinite(item.name.gaelic),
                 }
             };
         });
@@ -143,7 +169,7 @@ function narrateInventory(gameState: GameState): Story {
                 entity: GameEntityMetadata.item(),
                 name: {
                     l1: item.name.english.indefinite,
-                    l2: item.name.gaelic.indefinite,
+                    l2: makeGaelicIndefinite(item.name.gaelic),
                 }
             };
         });
@@ -178,7 +204,7 @@ function narrateLook(look: GameEvent<'look'>, gameStateAfter: GameState): Story 
         // Narrate the player looking around
         lookStory.push(
             StoryElement.paragraph([
-                ParagraphElement.bilingual({l1: 'You look around...', l2: 'Seallaidh tu mun cuairt...'})
+                ParagraphElement.bilingual({l1: 'You look around...', l2: 'Seallaidh thu mun cuairt...'})
             ]),
         );
     }
@@ -198,23 +224,57 @@ function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story 
     let destinationRoom = gameStateAfter.rooms[move.destinationRoom];
     let sourceExit = sourceRoom.exits.find(exit => exit.id === move.sourceExit)!;
     let destinationExit = destinationRoom.exits.find(exit => exit.id === move.destinationExit)!;
+    let followers = move.followers.map(followerId => gameStateAfter.characters[followerId]);
     
-    console.log(`[event] [move]: ${actor.name.english.base} from ${sourceRoom.name.l1} to ${destinationRoom.name.l1}`);
+    let followerNames = followers.map(follower => follower.name.english.base);
+    console.log(`[event] [move]: ${actor.name.english.base} from ${sourceRoom.name.l1} to ${destinationRoom.name.l1} (followers: ${followerNames})`);
 
     // Case 1: the Player is moving to another room
     if (move.actor === player.id) {
+        // Text for any companions that come along with the Player
+        let companionParagraphElements: {
+            l1: Array<string | EntityReference>,
+            l2: Array<string | EntityReference>,
+        };
+        if (followers.length === 1) {
+            let followerName = buildDefiniteName(followers[0], gameStateAfter);
+            companionParagraphElements = {
+                l1: [
+                    // ", and (Lydia) follows you"
+                    ', and ',
+                    followerName.english,
+                    ' follows you',
+                ],
+                // ", agus leanaidh (Laoidheach) thu"
+                l2: [
+                    ', agus leanaidh ',
+                    followerName.gaelic,
+                    ' thu',
+                ],
+            };
+        } else {
+            companionParagraphElements = {
+                l1: [],
+                l2: [],
+            };
+        }
+
         let playerDirection = sourceExit.direction;
         return [
             StoryElement.paragraph([
                 ParagraphElement.bilingual({
+                    // "You go north..."
                     l1: [
                         'You go ',
                         ref(GameEntityMetadata.direction(), playerDirection.l1),
+                        ...companionParagraphElements.l1,
                         '...'
                     ],
+                    // "Thèid thu gu tuath..."
                     l2: [
                         'Thèid thu ',
                         ref(GameEntityMetadata.direction(), playerDirection.l2),
+                        ...companionParagraphElements.l2,
                         '...'
                     ],
                 })
@@ -224,19 +284,22 @@ function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story 
 
     // Case 2: another Creature exits the Player's room
     if (sourceRoom.id === player.room) {
+        let actorName = buildDefiniteName(actor, gameStateAfter);
         let exitDirection = sourceExit.direction;
         return [
             StoryElement.paragraph([
                 ParagraphElement.bilingual({
+                    // "(Lydia/The skeleton) exits north."
                     l1: [
-                        ref(GameEntityMetadata.enemy(), capitalizeEnglish(actor.name.english.definite)),
+                        capitalizeEnglish(actorName.english),
                         ' exits ',
                         ref(GameEntityMetadata.direction(), exitDirection.l1),
                         '.'
                     ],
+                    // "Falbhaidh (Laoidheach/an cnàimhneach) gu tuath."
                     l2: [
                         'Falbhaidh ',
-                        ref(GameEntityMetadata.enemy(), actor.name.gaelic.definite),
+                        actorName.gaelic,
                         ' ',
                         ref(GameEntityMetadata.direction(), exitDirection.l2),
                         '.'
@@ -248,19 +311,22 @@ function narrateMove(move: GameEvent<'move'>, gameStateAfter: GameState): Story 
 
     // Case 3: another Creature enters the Player's room
     if (destinationRoom.id === player.room) {
+        let actorName = buildIndefiniteName(actor, gameStateAfter);
         let entranceDirection = destinationExit.directionReverse;
         return [
             StoryElement.paragraph([
                 ParagraphElement.bilingual({
+                    // "(Lydia/A skeleton) enters from the north."
                     l1: [
-                        ref(GameEntityMetadata.enemy(), capitalizeEnglish(actor.name.english.indefinite)),
+                        capitalizeEnglish(actorName.english),
                         ' enters ',
                         ref(GameEntityMetadata.direction(), entranceDirection.l1),
                         '.'
                     ],
+                    // "Thèid (Laoidheach/cnàimhneach) a-steach bhon tuath."
                     l2: [
                         'Thèid ',
-                        ref(GameEntityMetadata.enemy(), actor.name.gaelic.indefinite),
+                        actorName.gaelic,
                         ' a-steach ',
                         ref(GameEntityMetadata.direction(), entranceDirection.l2),
                         '.'
@@ -281,14 +347,16 @@ function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState):
     return [
         StoryElement.paragraph([
             ParagraphElement.bilingual({
+                // "You take the sword."
                 l1: [
                     'You take ',
                     ref(GameEntityMetadata.item(), itemName.english.definite),
                     '.'
                 ],
+                // "Gabhaidh thu an claidheamh."
                 l2: [
-                    'Gabhaidh tu ',
-                    ref(GameEntityMetadata.item(), itemName.gaelic.definite),
+                    'Gabhaidh thu ',
+                    ref(GameEntityMetadata.item(), makeGaelicDefinite(itemName.gaelic)),
                     '.'
                 ],
             })
@@ -298,6 +366,14 @@ function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState):
 
 function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story {
     let attacker = gameState.characters[attack.attacker];
+    let defender = gameState.characters[attack.defender];
+    console.log(`[event] [attack]: ${attacker.name.english.base} attacks ${defender.name.english}`);
+
+    // Don't narrate combat outside the Player's room
+    let player = gameState.characters[gameState.player];
+    if (attack.room !== player.room) {
+        return [];
+    }
 
     // If a weapon was used, build a descriptive clause about the weapon
     let weaponParagraphElements: {
@@ -311,131 +387,102 @@ function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story
         };
     } else {
         let attackItem = gameState.items[attack.weapon];
-        let englishPgn: EnglishPersonGenderNumber = attack.attacker === gameState.player ? 'you' : 'it';
-        let gaelicPgn: GaelicPersonGenderNumber = attack.attacker === gameState.player ? 'you (s)' : 'he';
         weaponParagraphElements = {
+            // " with (your/his) sword"
             l1: [
                 ' with ',
                 ...makeEnglishPossessive(
+                    attacker.name.english.personGenderNumber,
                     attackItem.name.english,
-                    englishPgn,
                     itemWord => ref(GameEntityMetadata.item(), itemWord),
                 ),
             ],
+            // " leis a' chlaidheamh (agad/aige)"
             l2: [
-                ' leis ', // TODO - determine when le vs leis is used
-                ...makeGaelicPossessiveWithAig(
-                    attackItem.name.gaelic,
-                    gaelicPgn,
-                    itemWord => ref(GameEntityMetadata.item(), itemWord),
-                ),
+                ' leis ',
+                ref(GameEntityMetadata.item(), makeGaelicDative(attackItem.name.gaelic)),
+                ' ',
+                GAELIC_PREPOSITION_AIG.pronominalForms[getGaelicPersonGenderNumber(attacker.name.gaelic)],
             ],
         };
     }
 
-    // Case 1: The Player attacking another Character
-    if (attack.attacker === gameState.player) {
-        let defender = gameState.characters[attack.defender];
+    let attackerName = buildDefiniteName(attacker, gameState);
+    let defenderName = buildDefiniteName(defender, gameState);
 
-        let attackParagraphElements: ParagraphElement[] = [
-            ParagraphElement.bilingual({
-                l1: [
-                    'You attack ',
-                    ref(GameEntityMetadata.enemy(), defender.name.english.definite),
-                    ...weaponParagraphElements.l1,
-                    '!'
-                ],
-                l2: [
-                    'Sabaidichidh tu ',
-                    ref(GameEntityMetadata.enemy(), defender.name.gaelic.definite),
-                    ...weaponParagraphElements.l2,
-                    '!'
-                ],
-            })
-        ];
-        
-        if (attack.isFatal) {
-            attackParagraphElements.push(
-                ParagraphElement.bilingual({
-                    l1: `It dies!`,
-                    l2: `Dìthidh e!`,
-                })
-            )
-        }
-        return [
-            StoryElement.paragraph(attackParagraphElements, 'combat')
-        ];
-    }
-
-    // Case 2: Another Character attacking the Player
-    let attackParagraphElements = [
+    // Main attack sentence
+    let attackParagraphElements: ParagraphElement[] = [
         ParagraphElement.bilingual({
+            // "(You/Lydia) attack(s) the skeleton[ with your/her sword]!"
             l1: [
-                ref(GameEntityMetadata.enemy(), capitalizeEnglish(attacker.name.english.definite)),
-                ' attacks you',
+                capitalizeEnglish(attackerName.english),
+                ' ',
+                conjugateEnglishVerb('attack', 'attacks', attacker.name.english.personGenderNumber),
+                ' ',
+                defenderName.english,
                 ...weaponParagraphElements.l1,
                 '!'
             ],
+            // "Bheir (thu/Laoidheach) ionnsaigh (ort/air an cnàimhneach)[ leis an claidheamh agad/aice]!"
             l2: [
-                'Sabaidichidh ',
-                ref(GameEntityMetadata.enemy(), attacker.name.gaelic.definite),
-                ' thu',
+                'Bheir ',
+                attackerName.gaelic,
+                ' ionnsaigh ',
+                ...buildGaelicPrepositionalPhrase(defender, gameState, GAELIC_PREPOSITION_AIR),
                 ...weaponParagraphElements.l2,
                 '!'
             ],
         })
     ];
+    
+    // Fatality sentence
     if (attack.isFatal) {
+        // Refer to the defender by its pronoun
+        let defenderPronoun = buildPronounReference(defender);
+
         attackParagraphElements.push(
             ParagraphElement.bilingual({
-                l1: `You die!`,
-                l2: `Dìthidh tu!`,
+                // "(You/It) die(s)!"
+                l1: [
+                    capitalizeEnglish(defenderPronoun.english),
+                    ' ',
+                    conjugateEnglishVerb('die', 'dies', defender.name.english.personGenderNumber),
+                    '!',
+                ],
+                // "Dìthidh (thu/e)!"
+                l2: [
+                    "Dìthidh ",
+                    defenderPronoun.gaelic,
+                    "!",
+                ]
             })
         )
     }
+
     return [
         StoryElement.paragraph(attackParagraphElements, 'combat')
     ];
-
-    // TODO Case 3: Another Character attacks another Character in the Player's room
 }
 
 function narrateTrapDamage(trapDamage: GameEvent<'trapDamage'>, gameState: GameState): Story {
-    // Case 1: the Player gets damaged
-    if (trapDamage.defender === gameState.player) {
-        let attackParagraphElements = [
-            ParagraphElement.bilingual({
-                l1: 'A trap damages you!',
-                l2: 'Nì trap cron ort!',
-            })
-        ];
-        if (trapDamage.isFatal) {
-            attackParagraphElements.push(
-                ParagraphElement.bilingual({
-                    l1: `You die!`,
-                    l2: `Dìthidh tu!`,
-                })
-            )
-        }
-        return [
-            StoryElement.paragraph(attackParagraphElements, 'combat')
-        ];
-    }
-
-    // Case 2: another Creature gets damaged which the Player can see
     let defender = gameState.characters[trapDamage.defender];
     let player = gameState.characters[gameState.player];
-    if (defender.room === player.room) {
+
+    if (trapDamage.room === player.room) {
+        // Case 1: A Trap Damage occurs in the Player's room
+        let defenderName = buildDefiniteName(defender, gameState);
         let attackParagraphElements = [
             ParagraphElement.bilingual({
+                // "A trap damages (you/the skeleton)!"
                 l1: [
                     'A trap damages ',
-                    ref(GameEntityMetadata.enemy(), defender.name.english.definite),
-                    '!',
+                    defenderName.english,
+                    '!'
                 ],
+                // "Nì trap cron (ort/air an cnàimhneach)!"
                 l2: [
-                    'Nì trap cron air ',
-                    ref(GameEntityMetadata.enemy(), defender.name.gaelic.definite),
+                    'Nì trap cron ',
+                    ...buildGaelicPrepositionalPhrase(defender, gameState, GAELIC_PREPOSITION_AIR),
                     '!',
                 ],
             })
@@ -443,18 +490,28 @@ function narrateTrapDamage(trapDamage: GameEvent<'trapDamage'>, gameState: GameS
         if (trapDamage.isFatal) {
             attackParagraphElements.push(
                 ParagraphElement.bilingual({
-                    l1: 'It dies!',
-                    l2: 'Dìthidh e!',
+                    // "(You/The skeleton) die(s)!"
+                    l1: [
+                        capitalizeEnglish(defenderName.english),
+                        conjugateEnglishVerb("die", "dies", defender.name.english.personGenderNumber),
+                        "!",
+                    ],
+                    // "Dìthidh (thu/an cnàimhneach)!"
+                    l2: [
+                        "Dìthidh ",
+                        defenderName.gaelic,
+                        "!",
+                    ],
                 })
             )
         }
         return [
             StoryElement.paragraph(attackParagraphElements, 'combat')
         ];
+    } else {
+        // Case 2: a Trap Damage occurs outside of the Player's room
+        return []
     }
-
-    // Case 3: another Creature gets damaged and the Player cannot see
-    return [];    
 }
 
 function narrateNarration(narration: GameEvent<'narration'>): Story {
@@ -464,11 +521,23 @@ function narrateNarration(narration: GameEvent<'narration'>): Story {
 function narrateWait(wait: GameEvent<'wait'>, gameState: GameState): Story {
     // Case 1: the Player waits
     if (wait.actor === gameState.player) {
+        let actor = gameState.characters[wait.actor];
+        let actorName = buildDefiniteName(actor, gameState);
         return [
             StoryElement.paragraph([
                 ParagraphElement.bilingual({
-                    l1: 'You wait...',
-                    l2: 'Fuirich tu...',
+                    // "(You/The skeleton) wait(s)..."
+                    l1: [
+                        capitalizeEnglish(actorName.english),
+                        ' ',
+                        conjugateEnglishVerb('wait', 'waits', actor.name.english.personGenderNumber),
+                    ],
+                    // "Fuirichidh (thu/an cnàimhneach)..."
+                    l2: [
+                        'Fuirichidh ',
+                        actorName.gaelic,
+                        "...",
+                    ],
                 })
             ])
         ];
@@ -476,6 +545,117 @@ function narrateWait(wait: GameEvent<'wait'>, gameState: GameState): Story {
 
     // Case 2: another Character waits
     return [];
+}
+
+/**
+ * Builds a definite name for a Character in both languages.
+ * 
+ * This should be used any time a Character is referenced by name, so that the metadata is consistent.
+ * @param isAfterRelativeFutureConditional - for proper Gaelic, whether this name appears immediately after a Relative Future or Conditional verb
+ */
+function buildDefiniteName(character: Character, gameState: GameState, isAfterRelativeFutureConditional: boolean = false): {
+    english: string | EntityReference,
+    gaelic: string | EntityReference,
+  } {
+    // Player will always be referred to by their pronouns
+    if (character.id === gameState.player) {
+        return buildPronounReference(character, isAfterRelativeFutureConditional);
+    }
+
+    return {
+        english: buildCharacterMetadata(
+            character.name.english.definite,
+            character,
+            gameState
+        ),
+        gaelic: buildCharacterMetadata(
+            makeGaelicDefinite(character.name.gaelic, isAfterRelativeFutureConditional),
+            character,
+            gameState
+        ),
+    };
+}
+
+/**
+ * Builds an indefinite name for a Character in both languages.
+ * 
+ * This should be used any time a Character is referenced by name, so that the metadata is consistent.
+ * @param isAfterRelativeFutureConditional - for proper Gaelic, whether this name appears immediately after a Relative Future or Conditional verb
+ */
+function buildIndefiniteName(character: Character, gameState: GameState, isAfterRelativeFutureConditional: boolean = false): {
+    english: string | EntityReference,
+    gaelic: string | EntityReference,
+  } {
+    // Player will always be referred to by their pronouns
+    if (character.id === gameState.player) {
+        return buildPronounReference(character, isAfterRelativeFutureConditional);
+    }
+
+    return {
+        english: buildCharacterMetadata(
+            character.name.english.indefinite,
+            character,
+            gameState
+        ),
+        gaelic: buildCharacterMetadata(
+            makeGaelicIndefinite(character.name.gaelic, isAfterRelativeFutureConditional),
+            character,
+            gameState
+        ),
+    };
+}
+
+function buildGaelicPrepositionalPhrase(character: Character, gameState: GameState, preposition: GaelicPreposition): Array<string | EntityReference> {
+    // Player will always be referred to the pronominal preposition, example "ort" or "agad"
+    if (character.id === gameState.player) {
+        let player = gameState.characters[gameState.player];
+        let playerPersonGenderNumber = getGaelicPersonGenderNumber(player.name.gaelic);
+        return [preposition.pronominalForms[playerPersonGenderNumber]];
+    };
+
+    // Form the preposition separately from the name, example "air an ch"
+    // TODO some prepositions assimilate the definite article
+    let characterName = preposition.takesTheGenitive
+            ? makeGaelicDative(character.name.gaelic)
+            : makeGaelicDefinite(character.name.gaelic);
+    let characterReference = buildCharacterMetadata(characterName, character, gameState);
+    return [preposition.baseForm + ' ', characterReference];
+}
+
+function buildPronounReference(character: Character, isAfterRelativeFutureConditional: boolean = false): {
+    english: string,
+    gaelic: string,
+} { 
+    return {
+        english: getEnglishNominativePronoun(character.name.english.personGenderNumber),
+        gaelic: getGaelicPronoun(
+            getGaelicPersonGenderNumber(character.name.gaelic),
+            isAfterRelativeFutureConditional,
+        ),
+    }
+}
+
+function buildCharacterMetadata(name: string, character: Character, gameState: GameState): string | EntityReference {
+    // Player does not have any metadata associated with them
+    if (character.id === gameState.player) {
+        return name;
+    }
+
+    let player = gameState.characters[gameState.player];
+
+    if (character.faction !== undefined && character.faction === player.faction) {
+        // Character is a companion
+        return ref(
+            GameEntityMetadata.companion(), 
+            name,
+        );
+    }
+
+    // Any other Character is an enemy
+    return ref(
+        GameEntityMetadata.enemy(), 
+        name,
+    );
 }
 
 function narrateGameOver() {

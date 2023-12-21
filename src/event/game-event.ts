@@ -21,6 +21,11 @@ export const GameEvent = variant({
         actor: string,
 
         /**
+         * Any Characters who come along as followers
+         */
+        followers: Array<string>,
+
+        /**
          * Room the Character is moving from
          */
         sourceRoom: string,
@@ -66,6 +71,11 @@ export const GameEvent = variant({
         attacker: string,
 
         /**
+         * The Room the attack occurred in
+         */
+        room: string,
+
+        /**
          * Item the attacker is attacking with, if any
          */
         weapon: string | undefined,
@@ -89,6 +99,11 @@ export const GameEvent = variant({
          * The Character being damaged
          */
         defender: string,
+
+        /**
+         * The Room the trap damage occurred in
+         */
+        room: string,
 
         /**
          * Whether the trap killed the defender

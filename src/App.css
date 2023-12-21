@@ -21,6 +21,11 @@
   font-weight: bold;
 }
 
+.entity-companion {
+  color: green;
+  font-weight: bold;
+}
+
 .entity-item {
   color: goldenrod;
   font-weight: bold;

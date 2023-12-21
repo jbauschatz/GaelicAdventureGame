@@ -1,4 +1,5 @@
 import { GameState } from "../../model/game/game-state";
+import { getLivingEnemiesInRoom } from "../../model/game/game-state-util";
 import { pickOne } from "../../util/random-util";
 import { GameCommand } from "../game-command";
 
@@ -39,16 +40,18 @@ export type characterControllerModule = {
 }
 
 /**
- * If the Player is in the same room, attack it
+ * If there are enemies in the same room, attach one randomly
  */
-export const ATTACK_NEARBY_PLAYER: characterControllerModule = {
+export const ATTACK_NEARBY_ENEMY: characterControllerModule = {
     canExecute: (characterId: string, gameState: GameState) => {
-        return gameState.characters[characterId].room === gameState.characters[gameState.player].room;
+        return getLivingEnemiesInRoom(characterId, gameState).length > 0;
     },
     execute: (characterId: string, gameState: GameState) => {
+        let enemies = getLivingEnemiesInRoom(characterId, gameState);
+        let randomEnemy = pickOne(enemies);
         return GameCommand.attack({
             attacker: characterId,
-            defender: gameState.player
+            defender: randomEnemy.id,
         });
     }
 }
@@ -58,6 +61,12 @@ export const ATTACK_NEARBY_PLAYER: characterControllerModule = {
  */
 export const MOVE_RANDOMLY: characterControllerModule = {
     canExecute: (characterId: string, gameState: GameState) => {
+        // Followers should remain with their party leader
+        let character = gameState.characters[characterId];
+        if (character.partyLeader !== undefined) {
+            return false;
+        }
+
         // Assume there is always a valid exit
         return true;
     },

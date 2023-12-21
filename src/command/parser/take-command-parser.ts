@@ -3,6 +3,7 @@ import { CommandParser } from "./command";
 import { GameState } from "../../model/game/game-state";
 import { GameEvent } from "../../event/game-event";
 import { findItemByName } from "./parser-helpers";
+import { makeGaelicDefinite } from "../../model/language/gaelic/gaelic-noun";
 
 export const TAKE_COMMAND_PARSER: CommandParser = {
     l1: 'take',
@@ -21,19 +22,22 @@ export const TAKE_COMMAND_PARSER: CommandParser = {
                 l2PreviewText: "gabh __________",
                 enabled: enabled,
                 isComplete: false,
-                followUpPreviews: items.map(item => ({
-                    l1Prompt: item.name.english.definite,
-                    l2Prompt: item.name.gaelic.definite,
-                    l1PreviewText: "take " + item.name.english.definite,
-                    l2PreviewText: "gabh " + item.name.gaelic.definite,
-                    enabled: true,
-                    isComplete: true,
-                    followUpPreviews: [],
-                    command: GameEvent.takeItem({
-                        actor: gameState.player,
-                        item: item.id,
-                    }),
-                })),
+                followUpPreviews: items.map(item => {
+                    let definiteName = makeGaelicDefinite(item.name.gaelic);
+                    return {
+                        l1Prompt: item.name.english.definite,
+                        l2Prompt: definiteName,
+                        l1PreviewText: "take " + item.name.english.definite,
+                        l2PreviewText: "gabh " + definiteName,
+                        enabled: true,
+                        isComplete: true,
+                        followUpPreviews: [],
+                        command: GameEvent.takeItem({
+                            actor: gameState.player,
+                            item: item.id,
+                        }),
+                    };
+                }),
                 command: undefined,
             },
         ];
@@ -67,7 +71,7 @@ export const TAKE_COMMAND_PARSER: CommandParser = {
         let room = gameState.rooms[player.room];
         return {
             l1: room.items.map(item => 'take ' + gameState.items[item].name.english.definite),
-            l2: room.items.map(item => 'gabh ' + gameState.items[item].name.gaelic.definite),
+            l2: room.items.map(item => 'gabh ' + makeGaelicDefinite(gameState.items[item].name.gaelic)),
         };
     }
 }

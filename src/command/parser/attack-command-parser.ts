@@ -1,43 +1,46 @@
 import { GameEvent } from "../../event/game-event";
 import { GameState } from "../../model/game/game-state";
-import { getLivingEnemies } from "../../model/game/game-state-util";
+import { getLivingEnemiesInRoom } from "../../model/game/game-state-util";
+import { makeGaelicDative } from "../../model/language/gaelic/gaelic-noun";
 import { GameCommand } from "../game-command";
 import { CommandParser } from "./command";
 import { findCharactersByName } from "./parser-helpers";
 
 export const ATTACK_COMMAND_PARSER: CommandParser = {
-    l1: 'fight',
-    l2: 'sabaidich',
+    l1: 'attack',
+    l2: 'thoir ionnsaigh air',
     getCommandPreviews: (gameState: GameState) => {
-        let player = gameState.characters[gameState.player];
-        let validEnemies = getLivingEnemies(gameState.player, player.room, gameState);
+        let validEnemies = getLivingEnemiesInRoom(gameState.player, gameState);
         let enabled = validEnemies.length > 0;
         return [
             {
-                l1Prompt: "fight...",
-                l2Prompt: "sabaidich...",
-                l1PreviewText: "fight __________",
-                l2PreviewText: "sabaidich __________",
+                l1Prompt: "attack...",
+                l2Prompt: "ionnsaigh...",
+                l1PreviewText: "attack __________",
+                l2PreviewText: "thoir ionnsaigh air __________",
                 enabled: enabled,
-                followUpPreviews: validEnemies.map(enemy => ({
-                    l1Prompt: enemy.name.english.definite,
-                    l2Prompt: enemy.name.gaelic.definite,
-                    l1PreviewText: "fight " + enemy.name.english.definite,
-                    l2PreviewText: "sabaidich " + enemy.name.gaelic.definite,
-                    enabled: true,
-                    followUpPreviews: [],
-                    isComplete: true,
-                    command: GameCommand.attack({
-                        attacker: gameState.player,
-                        defender: enemy.id,
-                    }),
-                })),
+                followUpPreviews: validEnemies.map(enemy => {
+                    let enemyName = makeGaelicDative(enemy.name.gaelic)
+                    return {
+                        l1Prompt: enemy.name.english.definite,
+                        l2Prompt: enemyName,
+                        l1PreviewText: "attack " + enemy.name.english.definite,
+                        l2PreviewText: "thoir ionnsaigh air " + enemyName,
+                        enabled: true,
+                        followUpPreviews: [],
+                        isComplete: true,
+                        command: GameCommand.attack({
+                            attacker: gameState.player,
+                            defender: enemy.id,
+                        }),
+                    };
+                }),
                 isComplete: false,
                 command: undefined,
             },
         ]
     },
-    helpText: {l1: 'Fight against an enemy', l2: 'Sabaid an aghaidh nàmhaid'},
+    helpText: {l1: 'Attack an enemy', l2: 'Thoir ionnsaigh air nàmhaid'},
     parse: (restOfCommand: string, gameState: GameState) => {
         // Validate that a full command was received
         if (!restOfCommand) {
@@ -49,8 +52,7 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
             });
         }
 
-        let player = gameState.characters[gameState.player];
-        let validEnemies = getLivingEnemies(gameState.player, player.room, gameState);
+        let validEnemies = getLivingEnemiesInRoom(gameState.player, gameState);
         let identifiedEnemies = findCharactersByName(restOfCommand, validEnemies);
 
         // Validate the enemy name
@@ -70,11 +72,10 @@ export const ATTACK_COMMAND_PARSER: CommandParser = {
         });
     },
     getValidCommands: (gameState: GameState) => {
-        let player = gameState.characters[gameState.player];
-        let enemies = getLivingEnemies(gameState.player, player.room, gameState);
+        let enemies = getLivingEnemiesInRoom(gameState.player, gameState);
         return {
-            l1: enemies.map(enemy => 'fight ' + enemy.name.english.definite),
-            l2: enemies.map(enemy => 'sabaidich ' + enemy.name.gaelic.definite),
+            l1: enemies.map(enemy => 'attack ' + enemy.name.english.definite),
+            l2: enemies.map(enemy => 'thoir ionnsaigh air ' + makeGaelicDative(enemy.name.gaelic)),
         };
     }
 }

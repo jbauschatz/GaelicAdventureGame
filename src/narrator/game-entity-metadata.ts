@@ -6,6 +6,7 @@ import { TypeNames, VariantOf, fields, variant } from "variant";
  */
 export const GameEntityMetadata = variant({
     enemy: () => fields({}),
+    companion: () => fields({}),
     item: () => fields({}),
     direction: () => fields({}),
     other: () => fields({}),

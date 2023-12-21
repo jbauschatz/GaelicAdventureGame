@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { GaelicNoun } from "./gaelic-noun";
+import { GaelicNoun, GaelicNounPhrase, makeGaelicDefinite } from "./gaelic-noun";
 import { GaelicPersonGenderNumber } from "./gaelic-person-gender-number";
 import { GAELIC_PREPOSITION_AIG } from "./gaelic-preposition";
 
@@ -35,22 +35,35 @@ export function canLenite(string: string): boolean {
         }
     }
 
+    // Words starting with certain first letters can lenite
     let firstLetter = string[0];
     return ['b', 'c', 'd', 'f', 'g', 'm', 'p', 's', 't'].includes(firstLetter);
+}
+
+export function getGaelicPronoun(personGenderNumber: GaelicPersonGenderNumber, isAfterRelativeFutureConditional: boolean = false): string {
+    return {
+        'I': 'mi',
+        'we': 'sinn',
+        'you (s)': isAfterRelativeFutureConditional ? 'tu' : 'thu',
+        'he': 'e',
+        'she': 'i',
+        'you (pl)': 'sibh',
+        'they': 'iad',
+    }[personGenderNumber];
 }
 
 /**
  * Makes a possessive using the preposition "aig" (example: "an taigh agam" / "my house")
  */
 export function makeGaelicPossessiveWithAig<WrapperType>(
-    noun: GaelicNoun,
-    personGenderNumber: GaelicPersonGenderNumber,
+    noun: GaelicNounPhrase,
+    ownerPersonGenderNumber: GaelicPersonGenderNumber,
     wrapFunction: (word: string) => WrapperType
 ): Array<string | WrapperType> {
     return [
-        wrapFunction(noun.definite),
+        wrapFunction(makeGaelicDefinite(noun)),
         ' ',
-        GAELIC_PREPOSITION_AIG.pronominalForms[personGenderNumber]
+        GAELIC_PREPOSITION_AIG.pronominalForms[ownerPersonGenderNumber]
     ];
 }
 

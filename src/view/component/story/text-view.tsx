@@ -19,6 +19,7 @@ export function TextView({text}: {text: StoryText}) {
                     if (isOfVariant(entityMetadata, GameEntityMetadata)) {
                         let className: string = match(entityMetadata, {
                             enemy: constant('entity-enemy'),
+                            companion: constant('entity-companion'),
                             item: constant('entity-item'),
                             direction: constant('entity-direction'),
                             other: constant('entity-other')

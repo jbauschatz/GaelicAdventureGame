@@ -4,6 +4,9 @@ import { ParagraphElement, ref } from "./story";
 export const CONJUNCTION_AND = { l1: 'and', l2: 'agus'};
 export const CONJUNCTION_OR = { l1: 'or', l2: 'no'};
 
+/**
+ * Builds a Bilingual list of names, seperated into individual translated elements, and separated by the Oxford Comma
+ */
 export function buildOxfordCommaList(
     namedEntities: Array<{entity: any, name: BilingualText}>,
     conjunction: BilingualText = CONJUNCTION_AND

@@ -5,10 +5,12 @@ import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
 import { Room } from "../model/game/room";
 import { genId } from "./id";
-import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER, NOUN_DAGGER } from "../model/language/lexicon";
+import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER, NOUN_DAGGER, NOUN_HAMMER } from "../model/language/lexicon";
 import { Trigger } from "../model/game/trigger";
 import { GameCommand } from "../command/game-command";
 import { Exit } from "../model/game/exit";
+import { buildProperName } from "../model/game/name";
+import { GaelicNounPhrase } from "../model/language/gaelic/gaelic-noun";
 
 const directionNorth = {l1: 'north', l2: 'gu tuath'};
 const directionSouth = {l1: 'south', l2: 'gu deas'};
@@ -19,6 +21,11 @@ const directionFromNorth = {l1: 'from the north', l2: 'bhon tuath'};
 const directionFromSouth = {l1: 'from the south', l2: 'bho dheas'};
 const directionFromEast = {l1: 'from the east', l2: 'bhon ear'};
 const directionFromWest = {l1: 'from the west', l2: 'bhon iar'};
+
+/**
+ * Faction all monsters belong to
+ */
+const factionMonsters = genId();
 
 /**
  * Generates a GameState representing the initial state of a new game
@@ -147,6 +154,8 @@ export function newGame(): GameState {
         }),
     );
 
+    // Player
+    let factionPlayerParty = genId();
     let playerWeapon = generateDagger();
     let player: CharacterWithResources = {
         character: {
@@ -157,9 +166,30 @@ export function newGame(): GameState {
             equippedWeapon: playerWeapon.id,
             maxHealth: 10,
             currentHealth: 10,
+            faction: factionPlayerParty,
+            partyLeader: undefined,
         },
         items: [playerWeapon],
     }
+
+    // Player's companion Lydia in the starting room
+    let lydiaWeapon = generateHammer();
+    let lydia: CharacterWithResources = {
+        character: {
+            id: genId(),
+            name: buildProperName("Lydia", "she", GaelicNounPhrase.properName({base: "Laoidheach", vocative: "a Laoidheach", personGenderNumber: "she"})),
+            room: caveEntrance.room.id,
+            items: [lydiaWeapon.id],
+            equippedWeapon: lydiaWeapon.id,
+            maxHealth: 10,
+            currentHealth: 10,
+            faction: factionPlayerParty,
+            partyLeader: player.character.id,
+        },
+        items: [lydiaWeapon],
+    }
+    caveEntrance.characters = [...caveEntrance.characters, lydia];
+    caveEntrance.room.characters = [...caveEntrance.room.characters, lydia.character.id];
 
     return buildGameState(
         player,
@@ -308,6 +338,8 @@ function generateSkeleton(): CharacterWithResources {
             equippedWeapon: weapon.id,
             maxHealth: 2,
             currentHealth: 2,
+            faction: factionMonsters,
+            partyLeader: undefined,
         },
         items: [weapon],   
     }
@@ -323,6 +355,8 @@ function generateSpider(): CharacterWithResources {
             equippedWeapon: undefined,
             maxHealth: 1,
             currentHealth: 1,
+            faction: factionMonsters,
+            partyLeader: undefined,
         },
         items: [],
     }
@@ -338,6 +372,8 @@ function generateBigRat(): CharacterWithResources {
             equippedWeapon: undefined,
             maxHealth: 1,
             currentHealth: 1,
+            faction: factionMonsters,
+            partyLeader: undefined,
         },
         items: [],
     }
@@ -347,6 +383,13 @@ function generateDagger(): Item {
     return {
         id: genId(),
         name: NOUN_DAGGER,
+    };
+}
+
+function generateHammer(): Item {
+    return {
+        id: genId(),
+        name: NOUN_HAMMER,
     };
 }
 

@@ -12,4 +12,14 @@ export type Character = {
     equippedWeapon: string | undefined,
     maxHealth: number,
     currentHealth: number,
+
+    /**
+     * Faction this Character belongs to, indicating alliance status with other Characters
+     */
+    faction: string | undefined,
+
+    /**
+     * The Character this Character is following around, if any
+     */
+    partyLeader: string | undefined,
 }
