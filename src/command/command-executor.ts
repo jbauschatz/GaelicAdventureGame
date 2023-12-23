@@ -6,6 +6,7 @@ import _ from "lodash"
 import { Character } from "../model/game/character"
 import { Trigger } from "../model/game/trigger"
 import { Room } from "../model/game/room"
+import { EndOfGameCondition } from "../model/game/end-of-game-condition"
 
 export type GameStateTransition = {
     events: Array<GameEvent>,
@@ -47,7 +48,7 @@ function nextTurn(gameState: GameState) {
         characterWithNextTurn = gameState.characterTurnOrder[nextTurnIndex]
     } while (
         gameState.characters[characterWithNextTurn].currentHealth === 0
-                && nextTurnIndex != index
+                && nextTurnIndex !== index
     );
 
     return {
@@ -332,9 +333,9 @@ function resolveTriggerConditions(gameStateTransition: GameStateTransition): Gam
         }
     }
 
-    if (!gameState.isGameOver) {
-        // Check for player death
-        if (gameState.characters[gameState.player].currentHealth === 0) {
+    // End the game if any EndOfGameConditions currently resolve
+    gameState.endOfGameConditions.forEach(condition => {
+        if (!gameState.isGameOver && isEndOfGameConditionResolved(gameState, condition)) {
             // Transition to gameOver=true with a GameOver Event
             gameEvents = [...gameEvents, GameEvent.gameOver()];
             gameState = {
@@ -342,10 +343,16 @@ function resolveTriggerConditions(gameStateTransition: GameStateTransition): Gam
                 isGameOver: true,
             };
         }
-    }
+    });
 
     return {
         gameStateAfter: gameState,
         events: gameEvents,
     };
+}
+
+function isEndOfGameConditionResolved(gameState: GameState, endOfGameCondition: EndOfGameCondition): boolean {
+    return match(endOfGameCondition, {
+        characterDeath: characterDeath => gameState.characters[characterDeath.character].currentHealth <= 0
+    });
 }

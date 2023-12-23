@@ -5,12 +5,13 @@ import { GameState } from "../model/game/game-state";
 import { Item } from "../model/game/item";
 import { Room } from "../model/game/room";
 import { genId } from "./id";
-import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER, NOUN_DAGGER, NOUN_HAMMER } from "../model/language/lexicon";
+import { NOUN_BIG_SPIDER, NOUN_KEY, NOUN_BIG_RAT, NOUN_SKELETON, NOUN_SWORD, PRONOUN_YOU_SINGULAR, NOUN_FANCY_DAGGER, NOUN_DAGGER, NOUN_HAMMER, NOUN_SWORD_ANCIENT, NOUN_DRAUGR_LORD } from "../model/language/lexicon";
 import { Trigger } from "../model/game/trigger";
 import { GameCommand } from "../command/game-command";
 import { Exit } from "../model/game/exit";
 import { buildProperName } from "../model/game/name";
 import { GaelicNounPhrase } from "../model/language/gaelic/gaelic-noun";
+import { EndOfGameCondition } from "../model/game/end-of-game-condition";
 
 const directionNorth = {l1: 'north', l2: 'gu tuath'};
 const directionSouth = {l1: 'south', l2: 'gu deas'};
@@ -191,15 +192,28 @@ export function newGame(): GameState {
     caveEntrance.characters = [...caveEntrance.characters, lydia];
     caveEntrance.room.characters = [...caveEntrance.room.characters, lydia.character.id];
 
+    // Final Boss
+    let draugrBoss = generateDraugrBoss();
+    draugrBoss.character.room = antechamber.room.id;
+    antechamber.characters = [...antechamber.characters, draugrBoss];
+    antechamber.room.characters = [...antechamber.room.characters, draugrBoss.character.id];
+
+    // End of Game Conditions
+    let endOfGameConditions: Array<EndOfGameCondition> = [
+        EndOfGameCondition.characterDeath({character: draugrBoss.character.id}),
+    ];
+
     return buildGameState(
         player,
         [caveEntrance, tunnelNS, cavern, tunnelEW, tomb, antechamber],
+        endOfGameConditions,
     );
 }
 
 function buildGameState(
     player: CharacterWithResources,
     allRooms: Array<RoomWithResources>,
+    endOfGameConditions: Array<EndOfGameCondition>,
 ): GameState {
     let rooms: Record<string, Room> = {};
     let characters: Record<string, Character> = {
@@ -242,8 +256,15 @@ function buildGameState(
     // Combine characters into an arbitrary turn order
     let characterTurnOrder = Object.keys(characters);
 
+    // Include an EndOfGameCondition for the Player's death
+    endOfGameConditions = [
+        EndOfGameCondition.characterDeath({character: player.character.id}),
+        ...endOfGameConditions,
+    ];
+
     return {
         isGameOver: false,
+        endOfGameConditions,
         rooms,
         characters,
         items,
@@ -326,6 +347,28 @@ type CharacterWithResources = {
     items: Item[],
 }
 
+function generateDraugrBoss(): CharacterWithResources {
+    let weapon = {
+        id: genId(),
+        name: NOUN_SWORD_ANCIENT,
+    };
+
+    return {
+        character: {
+            id: genId(),
+            name: NOUN_DRAUGR_LORD,
+            room: '',
+            items: [weapon.id],
+            equippedWeapon: weapon.id,
+            maxHealth: 5,
+            currentHealth: 5,
+            faction: factionMonsters,
+            partyLeader: undefined,
+        },
+        items: [weapon],
+    }
+}
+
 function generateSkeleton(): CharacterWithResources {
     let weapon = generateSword();
 
@@ -341,7 +384,7 @@ function generateSkeleton(): CharacterWithResources {
             faction: factionMonsters,
             partyLeader: undefined,
         },
-        items: [weapon],   
+        items: [weapon],
     }
 }
 

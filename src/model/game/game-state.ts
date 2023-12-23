@@ -1,4 +1,5 @@
 import { Character } from "./character";
+import { EndOfGameCondition } from "./end-of-game-condition";
 import { Item } from "./item";
 import { Room } from "./room";
 
@@ -16,6 +17,11 @@ export type GameState = {
      * If true, all gameplay should cease.
      */
     isGameOver: boolean,
+
+    /**
+     * End of Game Conditions, which will be checked after every side-effect
+     */
+    endOfGameConditions: Array<EndOfGameCondition>,
 
     /**
      * Map of all Rooms in the game by their ids

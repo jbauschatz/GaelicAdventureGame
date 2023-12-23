@@ -30,6 +30,23 @@ export const NOUN_SKELETON: BilingualName = {
     }),
 };
 
+export const NOUN_DRAUGR_LORD: BilingualName = {
+    english: {
+        base: 'Draugr Lord',
+        indefinite: 'the Draugr Lord',
+        definite: 'the Draugr Lord',
+        personGenderNumber: 'he',
+    },
+    gaelic: GaelicNounPhrase.bareNoun({
+        noun: {
+            indefinite: 'Tighearna nan Seann-Shòmbaidhean',
+            definite: 'an Tighearna nan Seann-Shòmbaidhean',
+            dative: "an Tighearna nan Seann-Shòmbaidhean",
+            personGenderNumber: 'he',
+        },
+    }),
+};
+
 export const NOUN_BIG_SPIDER: BilingualName = {
     english: {
         base: 'big spider',
@@ -76,6 +93,23 @@ export const NOUN_SWORD: BilingualName = {
             indefinite: 'claidheamh',
             definite: 'an claidheamh',
             dative: "a' chlaidheamh",
+            personGenderNumber: 'he',
+        },
+    }),
+};
+
+export const NOUN_SWORD_ANCIENT: BilingualName = {
+    english: {
+        base: 'ancient sword',
+        indefinite: 'an ancient sword',
+        definite: 'the ancient sword',
+        personGenderNumber: 'it',
+    },
+    gaelic: GaelicNounPhrase.bareNoun({
+        noun: {
+            indefinite: 'claidheamh aosmhor',
+            definite: 'an claidheamh aosmhor',
+            dative: "a' chlaidheamh aosmhoir",
             personGenderNumber: 'he',
         },
     }),

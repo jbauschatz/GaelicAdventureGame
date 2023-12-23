@@ -367,7 +367,7 @@ function narrateTakeItem(takeItem: GameEvent<'takeItem'>, gameState: GameState):
 function narrateAttack(attack: GameEvent<'attack'>, gameState: GameState): Story {
     let attacker = gameState.characters[attack.attacker];
     let defender = gameState.characters[attack.defender];
-    console.log(`[event] [attack]: ${attacker.name.english.base} attacks ${defender.name.english}`);
+    console.log(`[event] [attack]: ${attacker.name.english.base} attacks ${defender.name.english.base}`);
 
     // Don't narrate combat outside the Player's room
     let player = gameState.characters[gameState.player];
