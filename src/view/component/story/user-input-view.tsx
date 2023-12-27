@@ -1,7 +1,14 @@
-import { StoryElement } from "../../../model/bilingual-story/story";
+import { StoryElement } from '../../../model/bilingual-story/story';
 
-export function UserInputView({userInput}: {userInput: StoryElement<'userInput'>}) {
-    return <div className="player-input">
-        {'> '}{userInput.input}
+export function UserInputView({
+  userInput,
+}: {
+  userInput: StoryElement<'userInput'>;
+}) {
+  return (
+    <div className='player-input'>
+      {'> '}
+      {userInput.input}
     </div>
+  );
 }

@@ -1,0 +1,15 @@
+TODO: github issue
+
+
+
+
+TODO: Cursor hover state for issue text
+
+TODO: padding for accept and delte buttons
+
+TODO: button all same sizes for choices 
+
+
+. Adjusted english text colors to fade out to show difference in languages 
+. changeg toggle function to a constant 
+. added hover state for toggle text
