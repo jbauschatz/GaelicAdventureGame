@@ -1,4 +1,3 @@
-
 .console {
   background-color: white;
   font-family: monospace;
@@ -20,9 +19,28 @@
   color: darkred;
   font-weight: bold;
 }
+.entity-enemy-english {
+  color: rgba(
+    139,
+    0,
+    0,
+    0.5
+  ); /* Adjust the alpha value as needed for the desired level of fading */
+  font-weight: bold;
+}
 
 .entity-companion {
   color: green;
+  font-weight: bold;
+}
+.entity-companion-english {
+  color: rgba(
+    0,
+    128,
+    0,
+    0.5
+  ); /* Adjust the alpha value as needed for the desired level of fading */
+
   font-weight: bold;
 }
 
@@ -30,13 +48,35 @@
   color: goldenrod;
   font-weight: bold;
 }
+.entity-item-english {
+  color: rgba(
+    218,
+    165,
+    32,
+    0.5
+  ); /* Adjust the alpha value as needed for the desired level of fading */
+  font-weight: bold;
+}
 
 .entity-direction {
   color: black;
   font-weight: bold;
 }
+.entity-direction-english {
+  color: rgba(
+    0,
+    0,
+    0,
+    0.5
+  ); /* Adjust the alpha value as needed for the desired level of fading */
+  font-weight: bold;
+}
 
 .entity-other {
+  color: black;
+  font-weight: bold;
+}
+.entity-other-english {
   color: black;
   font-weight: bold;
 }
@@ -62,6 +102,10 @@
   color: black;
 }
 
+.toggle-hover:hover {
+  cursor: pointer;
+}
+
 .highlight-for-translation {
   text-decoration: underline;
 }
@@ -70,7 +114,23 @@
   animation: fadeIn 1s;
 }
 
+.toggle-button:hover {
+  cursor: pointer;
+  background-color: rebeccapurple;
+}
+
+.toggle-button {
+  background-color: black;
+}
+
+.english-text-wrap {
+}
+
 @keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
